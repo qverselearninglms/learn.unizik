@@ -1,0 +1,33 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to Server via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 162.254.34.35
+          username: qverselearning
+          port: ${{ secrets.SSH_PORT }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /home/qverselearning/learn.unizik.edu.ng
+            
+            # Reset and Pull
+            GIT_SSH_COMMAND="ssh -i ~/.ssh/github-actions -o StrictHostKeyChecking=no" git fetch origin main
+            GIT_SSH_COMMAND="ssh -i ~/.ssh/github-actions -o StrictHostKeyChecking=no" git reset --hard origin/main
+            
+            # Install and Build
+            npm install
+            CI=false npm run build
+            
+            # Restart Application
+            pm2 restart learn.unizik.edu.ng --update-env || pm2 start npm --name "learn.unizik.edu.ng" -- start
+            pm2 save
