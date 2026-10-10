@@ -68,7 +68,8 @@ export function useSignup(): UseSignupReturn {
             onSuccess: async (res: SignupResponse) => {
                 toast.success('Account Created Successfully!');
                 const redirectUrl = res.user ? res.user.email : '';
-                router.push(`${baseUrl}/auth/signin?email=${redirectUrl}`);
+                // router.push(`${baseUrl}/auth/signin?email=${redirectUrl}`);
+                router.push(`/gs-registration`);
                 form.reset();
                 setCurrentStep(0);
                 setCompletedSteps([]);
