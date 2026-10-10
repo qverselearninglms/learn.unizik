@@ -15,7 +15,8 @@ export const personalInfoSchema = z.object({
 
 export const academicInfoSchema = z.object({
     department: nameSchema('Department'),
-    reg_number: regNumberSchema('School Registration Number'),
+    school_reg_number: regNumberSchema('School Registration Number'),
+    // reg_number: regNumberSchema('School Registration Number'),
     // jamb_reg_number: regNumberSchema('Jamb Registration Number', true),
     school_email: emailSchema("School Email"),
 });

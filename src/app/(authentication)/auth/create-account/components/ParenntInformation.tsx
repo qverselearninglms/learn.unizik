@@ -23,10 +23,10 @@ export const ParentInformation: React.FC<ParentInformationProps> = ({ register, 
 
                 <InputField
                     id='reg_number'
-                    {...register('reg_number')}
+                    {...register('school_reg_number')}
                     label="School Registration Number"
                     placeholder="Enter your school registration number"
-                    error={errors.reg_number?.message}
+                    error={errors.school_reg_number?.message}
                     required
                 />
             </div>

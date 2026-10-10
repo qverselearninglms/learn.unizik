@@ -10,8 +10,8 @@ import { BrandingPanel } from '@/components/global/generic-componenets';
 
 const SignupPage = () => {
     // 2. Trigger the redirect immediately
-    redirect('/auth/signin')
-    return null;
+    // redirect('/auth/signin')
+    // return null;
     return (
         <div className="min-h-screen flex">
             {/* Left Panel */}
