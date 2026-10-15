@@ -101,12 +101,11 @@ echo "=== 6. Managing Application Process with PM2 ==="
 export PORT="$APP_PORT"
 cd "$APP_DIR"
 if pm2 describe "$APP_NAME" >/dev/null 2>&1; then
-    echo "Restarting existing PM2 process..."
-    pm2 restart "$APP_NAME" --update-env
-else
-    echo "Starting new PM2 process from standalone server..."
-    pm2 start server.js --name "$APP_NAME" --cwd "$APP_DIR"
+    echo "Replacing existing PM2 process with standalone server entrypoint..."
+    pm2 delete "$APP_NAME"
 fi
+echo "Starting PM2 process from standalone server..."
+pm2 start server.js --name "$APP_NAME" --cwd "$APP_DIR" --update-env
 pm2 save
 
 echo "=== Deployment Complete! ==="

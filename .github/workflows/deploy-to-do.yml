@@ -15,7 +15,7 @@ jobs:
     - name: Set up Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '20'
+        node-version: '22'
         cache: 'npm'
 
     - name: Install dependencies and build standalone
@@ -26,9 +26,10 @@ jobs:
     - name: Prepare standalone artifact
       run: |
         mkdir -p standalone-artifact
-        cp -r .next/standalone/* standalone-artifact/
-        mkdir -p standalone-artifact/.next
+        cp -a .next/standalone/. standalone-artifact/
         cp -r .next/static standalone-artifact/.next/
+        test -f standalone-artifact/server.js
+        test -f standalone-artifact/.next/BUILD_ID
         cp -r public standalone-artifact/ || true
         tar -czf standalone-artifact.tar.gz -C standalone-artifact .
 
@@ -78,7 +79,9 @@ jobs:
           fi
 
           chmod +x /root/scripts/do/deploy-to-do.sh
-          sudo ARTIFACT_PATH=/tmp/standalone-deploy/standalone-artifact.tar.gz /root/scripts/do/deploy-to-do.sh
+          sudo --preserve-env=LOCAL_VARIABLES,ARTIFACT_PATH \
+            ARTIFACT_PATH=/tmp/standalone-deploy/standalone-artifact.tar.gz \
+            /root/scripts/do/deploy-to-do.sh
 
     - name: Verify application health
       uses: appleboy/ssh-action@master
