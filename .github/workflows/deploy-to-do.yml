@@ -29,6 +29,7 @@ jobs:
         key: ${{ secrets.DO_SSH_PRIVATE_KEY }}
         source: "scripts/do/deploy-to-do.sh"
         target: "/root/scripts/do"
+        strip_components: 2
 
     - name: Execute Deployment Script
       uses: appleboy/ssh-action@master
@@ -38,5 +39,11 @@ jobs:
         key: ${{ secrets.DO_SSH_PRIVATE_KEY }}
         envs: LOCAL_VARIABLES
         script: |
+          if [ ! -f /root/scripts/do/deploy-to-do.sh ]; then
+            echo "Deployment script not found at /root/scripts/do/deploy-to-do.sh"
+            echo "Discovered script locations under /root/scripts:"
+            find /root/scripts -type f -name "deploy-to-do.sh" || true
+            exit 1
+          fi
           chmod +x /root/scripts/do/deploy-to-do.sh
           sudo /root/scripts/do/deploy-to-do.sh

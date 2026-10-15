@@ -5,7 +5,7 @@ name: Deploy to VPS - Production
 # ─────────────────────────────────────────────────────────────────────────────
 on:
   push:
-    branches: [main]
+    branches: [develop]
 
 # ─────────────────────────────────────────────────────────────────────────────
 # CONFIGURE THESE for each application — everything else is generic.
@@ -54,7 +54,7 @@ env:
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Job 1 — Build
-# Runs on every push to main. Produces a deployment archive artifact.
+# Runs on every push to develop. Produces a deployment archive artifact.
 # ─────────────────────────────────────────────────────────────────────────────
 jobs:
   build:
@@ -113,7 +113,7 @@ jobs:
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Job 2 — Deploy
-# Runs only on pushes to main (not on PRs).
+# Runs only on pushes to develop (not on PRs).
 # Sequence:
 #   1. Transfer archive to server home directory
 #   2. Extract archive into app directory (scripts become available)
@@ -123,7 +123,7 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/develop'
 
     steps:
       # Compute APP_DIR here (env context not available in job-level env: blocks).
