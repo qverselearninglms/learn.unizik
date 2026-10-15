@@ -3,6 +3,8 @@ set -e
 
 APP_DIR="/var/www/gs.lean.unizik"
 REPO_URL="https://github.com/qverselearninglms/learn.unizik.git"
+DOMAIN="learn.unizik.edu.ng"
+EMAIL="admin@unizik.edu.ng"
 
 echo "=== 1. Checking & Installing System Dependencies == "
 # Check and install Node.js 20
@@ -54,6 +56,15 @@ else
 fi
 
 cd "$APP_DIR"
+
+echo "Writing environment variables..."
+if [ -n "$LOCAL_VARIABLES" ]; then
+    echo "$LOCAL_VARIABLES" > .env.production
+    sudo chmod 600 .env.production
+else
+    echo "Warning: LOCAL_VARIABLES is empty."
+fi
+
 echo "Installing project dependencies..."
 npm install
 
@@ -61,21 +72,21 @@ echo "Building Next.js application..."
 npm run build
 
 echo "=== 4. Configuring Nginx Reverse Proxy == "
-NGINX_CONF="/etc/nginx/sites-available/learn.unizik.edu.ng"
+NGINX_CONF="/etc/nginx/sites-available/$DOMAIN"
 if [ ! -f "$NGINX_CONF" ]; then
     echo "Creating Nginx server block..."
-    sudo bash -c "cat > $NGINX_CONF" << 'EOF'
+    sudo bash -c "cat > $NGINX_CONF" << EOF
 server {
     listen 80;
-    server_name learn.unizik.edu.ng;
+    server_name $DOMAIN;
 
     location / {
         proxy_pass http://localhost:3600;
         proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
+        proxy_set_header Host \$host;
+        proxy_cache_bypass \$http_upgrade;
     }
 }
 EOF
@@ -84,6 +95,23 @@ EOF
     sudo systemctl restart nginx
 else
     echo "Nginx configuration already exists."
+fi
+
+echo "=== 4b. Setting Up SSL Certificate with Certbot ==="
+if ! command -v certbot &> /dev/null; then
+    echo "Certbot not found. Installing Certbot..."
+    sudo apt update
+    sudo apt install -y certbot python3-certbot-nginx
+else
+    echo "Certbot is already installed."
+fi
+
+if [ ! -d "/etc/letsencrypt/live/$DOMAIN" ]; then
+    echo "Requesting new SSL certificate from Let's Encrypt..."
+    sudo certbot --nginx -d "$DOMAIN" --non-interactive --agree-tos -m "$EMAIL" --redirect
+else
+    echo "SSL certificate already exists. Checking for renewal..."
+    sudo certbot renew --quiet
 fi
 
 echo "=== 5. Managing Application Process with PM2 == "
