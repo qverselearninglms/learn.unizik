@@ -38,6 +38,7 @@ jobs:
         username: ${{ secrets.DO_SSH_USER }}
         key: ${{ secrets.DO_SSH_PRIVATE_KEY }}
         envs: LOCAL_VARIABLES
+        command_timeout: 20m
         script: |
           if [ ! -f /root/scripts/do/deploy-to-do.sh ]; then
             echo "Deployment script not found at /root/scripts/do/deploy-to-do.sh"
