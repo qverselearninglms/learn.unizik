@@ -6,29 +6,26 @@ DOMAIN="learn.unizik.edu.ng"
 EMAIL="admin@unizik.edu.ng"
 
 echo "=== 1. Checking & Installing System Dependencies == "
-# Check and install Node.js 20
 if ! command -v node &> /dev/null; then
     echo "Node.js not found. Installing Node.js..."
     curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
     sudo apt install -y nodejs
 else
-    echo "Node.js is already installed ($(node -v))."
+    echo "Node.js is already installed ($(node -v))."[cite: 1]
 fi
 
-# Check and install Nginx
 if ! command -v nginx &> /dev/null; then
     echo "Nginx not found. Installing Nginx..."
     sudo apt install -y nginx
 else
-    echo "Nginx is already installed."
+    echo "Nginx is already installed."[cite: 1]
 fi
 
-# Check and install PM2
 if ! command -v pm2 &> /dev/null; then
     echo "PM2 not found. Installing PM2..."
     sudo npm install -g pm2
 else
-    echo "PM2 is already installed."
+    echo "PM2 is already installed."[cite: 1]
 fi
 
 echo "=== 2. Checking & Setting Up Swap Space == "
@@ -40,10 +37,10 @@ if [ ! -f /swapfile ]; then
     sudo swapon /swapfile
     echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
 else
-    echo "Swap space already exists."
+    echo "Swap space already exists."[cite: 1]
 fi
 
-echo "=== 3. Deploying Application Artifacts == "
+echo "=== 3. Finalizing Application Artifacts == "
 sudo mkdir -p "$APP_DIR"
 cd "$APP_DIR"
 
@@ -52,7 +49,7 @@ if [ -n "$LOCAL_VARIABLES" ]; then
     echo "$LOCAL_VARIABLES" > .env.production
     sudo chmod 600 .env.production
 else
-    echo "Warning: LOCAL_VARIABLES is empty."
+    echo "Warning: LOCAL_VARIABLES is empty."[cite: 1]
 fi
 
 echo "=== 4. Configuring Nginx Reverse Proxy == "
@@ -78,7 +75,7 @@ EOF
     sudo nginx -t
     sudo systemctl restart nginx
 else
-    echo "Nginx configuration already exists."
+    echo "Nginx configuration already exists."[cite: 1]
 fi
 
 echo "=== 4b. Setting Up SSL Certificate with Certbot ==="
@@ -87,7 +84,7 @@ if ! command -v certbot &> /dev/null; then
     sudo apt update
     sudo apt install -y certbot python3-certbot-nginx
 else
-    echo "Certbot is already installed."
+    echo "Certbot is already installed."[cite: 1]
 fi
 
 if [ ! -d "/etc/letsencrypt/live/$DOMAIN" ]; then
@@ -95,7 +92,7 @@ if [ ! -d "/etc/letsencrypt/live/$DOMAIN" ]; then
     sudo certbot --nginx -d "$DOMAIN" --non-interactive --agree-tos -m "$EMAIL" --redirect
 else
     echo "SSL certificate already exists. Checking for renewal..."
-    sudo certbot renew --quiet
+    sudo certbot renew --quiet[cite: 1]
 fi
 
 echo "=== 5. Managing Application Process with PM2 == "
@@ -109,4 +106,4 @@ else
     pm2 save
 fi
 
-echo "=== Deployment Complete! ==="
+echo "=== Deployment Complete! ==="[cite: 1]
