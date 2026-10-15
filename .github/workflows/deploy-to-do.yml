@@ -28,7 +28,7 @@ jobs:
         username: ${{ secrets.DO_SSH_USER }}
         key: ${{ secrets.DO_SSH_PRIVATE_KEY }}
         source: "scripts/do/deploy-to-do.sh"
-        target: "/root/scripts"
+        target: "/root/scripts/do"
 
     - name: Execute Deployment Script
       uses: appleboy/ssh-action@master
