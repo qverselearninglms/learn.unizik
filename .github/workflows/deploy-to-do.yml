@@ -12,23 +12,23 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Copy deploy script to server and execute
+    - name: Create scripts directory on server
       uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.DO_SSH_HOST }}
         username: ${{ secrets.DO_SSH_USER }}
         key: ${{ secrets.DO_SSH_PRIVATE_KEY }}
         script: |
-          mkdir -p ~/scripts
+          mkdir -p /root/scripts/do
         
-    - name: Upload and run script
+    - name: Upload deployment script
       uses: appleboy/scp-action@master
       with:
         host: ${{ secrets.DO_SSH_HOST }}
         username: ${{ secrets.DO_SSH_USER }}
         key: ${{ secrets.DO_SSH_PRIVATE_KEY }}
         source: "scripts/do/deploy-to-do.sh"
-        target: "~/scripts/do"
+        target: "/root/scripts/do"
 
     - name: Execute Deployment Script
       uses: appleboy/ssh-action@master
@@ -40,3 +40,49 @@ jobs:
         script: |
           chmod +x /root/scripts/do/deploy-to-do.sh
           sudo /root/scripts/do/deploy-to-do.sh
+
+
+
+
+# name: Automated DigitalOcean Deployment
+
+# on:
+#   push:
+#     branches: [ main ]
+
+# jobs:
+#   deploy:
+#     runs-on: ubuntu-latest
+
+#     steps:
+#     - name: Checkout code
+#       uses: actions/checkout@v4
+
+#     - name: Copy deploy script to server and execute
+#       uses: appleboy/ssh-action@master
+#       with:
+#         host: ${{ secrets.DO_SSH_HOST }}
+#         username: ${{ secrets.DO_SSH_USER }}
+#         key: ${{ secrets.DO_SSH_PRIVATE_KEY }}
+#         script: |
+#           mkdir -p ~/scripts
+        
+#     - name: Upload and run script
+#       uses: appleboy/scp-action@master
+#       with:
+#         host: ${{ secrets.DO_SSH_HOST }}
+#         username: ${{ secrets.DO_SSH_USER }}
+#         key: ${{ secrets.DO_SSH_PRIVATE_KEY }}
+#         source: "scripts/do/deploy-to-do.sh"
+#         target: "~/scripts/do"
+
+#     - name: Execute Deployment Script
+#       uses: appleboy/ssh-action@master
+#       with:
+#         host: ${{ secrets.DO_SSH_HOST }}
+#         username: ${{ secrets.DO_SSH_USER }}
+#         key: ${{ secrets.DO_SSH_PRIVATE_KEY }}
+#         envs: LOCAL_VARIABLES
+#         script: |
+#           chmod +x /root/scripts/do/deploy-to-do.sh
+#           sudo /root/scripts/do/deploy-to-do.sh
