@@ -51,7 +51,7 @@ modules/gs-registration/
 ## 4. API contract (backend)
 
 All responses use the standard envelope `{ "status": "success", "message": "…", "data": { … } }`.
-snake_case or camelCase both work; `1/0/"1"` booleans are accepted. Base path is `NEXT_PUBLIC_GS_API_PREFIX` (default `/student/gs`). All endpoints require the student's bearer token.
+snake_case or camelCase both work; `1/0/"1"` booleans are accepted. Base path is `NEXT_PUBLIC_GS_API_PREFIX` (default `/account/student/gs`). All endpoints require the student's bearer token.
 
 | Method & path | Purpose | `data` |
 |---|---|---|

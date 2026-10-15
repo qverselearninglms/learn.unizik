@@ -3,7 +3,7 @@
  * Everything a host portal might want to tune lives here (or in the env vars below).
  */
 
-const API_PREFIX = (process.env.NEXT_PUBLIC_GS_API_PREFIX ?? '/student/gs').replace(/\/$/, '');
+const API_PREFIX = (process.env.NEXT_PUBLIC_GS_API_PREFIX ?? '/account/student/gs').replace(/\/$/, '');
 const BASE = '/gs-registration';
 
 export const gsConfig = {
