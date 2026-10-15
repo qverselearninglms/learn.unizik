@@ -23,15 +23,16 @@ jobs:
         npm ci
         npm run build
 
-    - name: Prepare Standalone Artifact Package
+    - name: Prepare standalone artifact
       run: |
-        mkdir -p deploy-package
-        cp -r .next/standalone/* deploy-package/
-        mkdir -p deploy-package/.next
-        cp -r .next/static deploy-package/.next/
-        cp -r public deploy-package/ || true
+        mkdir -p standalone-artifact
+        cp -r .next/standalone/* standalone-artifact/
+        mkdir -p standalone-artifact/.next
+        cp -r .next/static standalone-artifact/.next/
+        cp -r public standalone-artifact/ || true
+        tar -czf standalone-artifact.tar.gz -C standalone-artifact .
 
-    - name: Create scripts directory on server
+    - name: Create deploy directories on server
       uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.DO_SSH_HOST }}
@@ -39,20 +40,31 @@ jobs:
         key: ${{ secrets.DO_SSH_PRIVATE_KEY }}
         script: |
           mkdir -p /root/scripts/do
-          mkdir -p /var/www/gs.lean.unizik
-        
-    - name: Upload deployment script and build artifacts
+          mkdir -p /tmp/standalone-deploy
+
+    - name: Upload deployment script
       uses: appleboy/scp-action@master
       with:
         host: ${{ secrets.DO_SSH_HOST }}
         username: ${{ secrets.DO_SSH_USER }}
         key: ${{ secrets.DO_SSH_PRIVATE_KEY }}
-        source: "scripts/do/deploy-to-do.sh,deploy-package/*"
+        source: "scripts/do/deploy-to-do.sh"
         target: "/root/scripts/do"
         strip_components: 2
 
+    - name: Upload standalone artifact
+      uses: appleboy/scp-action@master
+      with:
+        host: ${{ secrets.DO_SSH_HOST }}
+        username: ${{ secrets.DO_SSH_USER }}
+        key: ${{ secrets.DO_SSH_PRIVATE_KEY }}
+        source: "standalone-artifact.tar.gz"
+        target: "/tmp/standalone-deploy"
+
     - name: Execute Deployment Script
       uses: appleboy/ssh-action@master
+      env:
+        LOCAL_VARIABLES: ${{ secrets.LOCAL_VARIABLES }}
       with:
         host: ${{ secrets.DO_SSH_HOST }}
         username: ${{ secrets.DO_SSH_USER }}
@@ -64,9 +76,33 @@ jobs:
             echo "Deployment script not found at /root/scripts/do/deploy-to-do.sh"
             exit 1
           fi
-          # Move uploaded standalone files to the app web root
-          cp -r /root/scripts/do/* /var/www/gs.lean.unizik/ 2>/dev/null || true
-          rm -rf /var/www/gs.lean.unizik/deploy-to-do.sh /var/www/gs.lean.unizik/deploy-package || true
-          
+
           chmod +x /root/scripts/do/deploy-to-do.sh
-          sudo /root/scripts/do/deploy-to-do.sh
+          sudo ARTIFACT_PATH=/tmp/standalone-deploy/standalone-artifact.tar.gz /root/scripts/do/deploy-to-do.sh
+
+    - name: Verify application health
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.DO_SSH_HOST }}
+        username: ${{ secrets.DO_SSH_USER }}
+        key: ${{ secrets.DO_SSH_PRIVATE_KEY }}
+        command_timeout: 5m
+        script: |
+          set -e
+          APP_HEALTH_URL="http://127.0.0.1:3600"
+
+          echo "Waiting for app readiness at ${APP_HEALTH_URL} ..."
+          for attempt in $(seq 1 20); do
+            if curl -fsS "$APP_HEALTH_URL" >/dev/null; then
+              echo "Health check passed on attempt ${attempt}."
+              pm2 status gs.lean.unizik
+              exit 0
+            fi
+
+            echo "Attempt ${attempt}/20 failed; retrying in 3s..."
+            sleep 3
+          done
+
+          echo "Health check failed after 20 attempts."
+          pm2 logs gs.lean.unizik --lines 80 --nostream || true
+          exit 1

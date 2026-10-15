@@ -1,58 +1,65 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
 APP_DIR="/var/www/gs.lean.unizik"
+APP_NAME="gs.lean.unizik"
+APP_PORT="3600"
 DOMAIN="learn.unizik.edu.ng"
 EMAIL="admin@unizik.edu.ng"
+ARTIFACT_PATH="${ARTIFACT_PATH:-/tmp/standalone-deploy/standalone-artifact.tar.gz}"
 
-echo "=== 1. Checking & Installing System Dependencies == "
-if ! command -v node &> /dev/null; then
+echo "=== 1. Checking & Installing System Dependencies ==="
+if ! command -v node >/dev/null 2>&1; then
     echo "Node.js not found. Installing Node.js..."
     curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
     sudo apt install -y nodejs
 else
-    echo "Node.js is already installed ($(node -v))."[cite: 1]
+    echo "Node.js is already installed ($(node -v))."
 fi
 
-if ! command -v nginx &> /dev/null; then
+if ! command -v nginx >/dev/null 2>&1; then
     echo "Nginx not found. Installing Nginx..."
     sudo apt install -y nginx
 else
-    echo "Nginx is already installed."[cite: 1]
+    echo "Nginx is already installed."
 fi
 
-if ! command -v pm2 &> /dev/null; then
+if ! command -v pm2 >/dev/null 2>&1; then
     echo "PM2 not found. Installing PM2..."
     sudo npm install -g pm2
 else
-    echo "PM2 is already installed."[cite: 1]
+    echo "PM2 is already installed."
 fi
 
-echo "=== 2. Checking & Setting Up Swap Space == "
-if [ ! -f /swapfile ]; then
-    echo "Creating 2GB swap file..."
-    sudo fallocate -l 2G /swapfile
-    sudo chmod 600 /swapfile
-    sudo mkswap /swapfile
-    sudo swapon /swapfile
-    echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
-else
-    echo "Swap space already exists."[cite: 1]
+echo "=== 2. Validating Deployment Artifact ==="
+if [ ! -f "$ARTIFACT_PATH" ]; then
+    echo "Deployment artifact not found at: $ARTIFACT_PATH"
+    exit 1
 fi
 
-echo "=== 3. Finalizing Application Artifacts == "
+TMP_RELEASE_DIR="$(mktemp -d)"
+trap 'rm -rf "$TMP_RELEASE_DIR"' EXIT
+tar -xzf "$ARTIFACT_PATH" -C "$TMP_RELEASE_DIR"
+
+if [ ! -f "$TMP_RELEASE_DIR/server.js" ]; then
+    echo "Invalid artifact: missing standalone server.js after extraction."
+    exit 1
+fi
+
+echo "=== 3. Updating Application Files (Standalone Runtime) ==="
 sudo mkdir -p "$APP_DIR"
-cd "$APP_DIR"
+sudo rm -rf "$APP_DIR/.next" "$APP_DIR/public" "$APP_DIR/node_modules" "$APP_DIR/server.js"
+sudo cp -a "$TMP_RELEASE_DIR/." "$APP_DIR/"
 
 echo "Writing environment variables..."
-if [ -n "$LOCAL_VARIABLES" ]; then
-    echo "$LOCAL_VARIABLES" > .env.production
-    sudo chmod 600 .env.production
+if [ -n "${LOCAL_VARIABLES:-}" ]; then
+    printf '%s\n' "$LOCAL_VARIABLES" | sudo tee "$APP_DIR/.env.production" >/dev/null
+    sudo chmod 600 "$APP_DIR/.env.production"
 else
-    echo "Warning: LOCAL_VARIABLES is empty."[cite: 1]
+    echo "Warning: LOCAL_VARIABLES is empty; keeping existing environment file if present."
 fi
 
-echo "=== 4. Configuring Nginx Reverse Proxy == "
+echo "=== 4. Configuring Nginx Reverse Proxy ==="
 NGINX_CONF="/etc/nginx/sites-available/$DOMAIN"
 if [ ! -f "$NGINX_CONF" ]; then
     echo "Creating Nginx server block..."
@@ -62,7 +69,7 @@ server {
     server_name $DOMAIN;
 
     location / {
-        proxy_pass http://localhost:3600;
+        proxy_pass http://localhost:$APP_PORT;
         proxy_http_version 1.1;
         proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -72,38 +79,34 @@ server {
 }
 EOF
     sudo ln -s "$NGINX_CONF" /etc/nginx/sites-enabled/ || true
-    sudo nginx -t
-    sudo systemctl restart nginx
+fi
+sudo nginx -t
+sudo systemctl restart nginx
+
+echo "=== 5. SSL Handling ==="
+if command -v certbot >/dev/null 2>&1; then
+    if [ -d "/etc/letsencrypt/live/$DOMAIN" ]; then
+        echo "Existing SSL certificate found. Attempting renewal check..."
+        sudo certbot renew --quiet || echo "Warning: certbot renew failed; continuing deployment."
+    else
+        echo "No existing SSL cert for $DOMAIN. Skipping initial issuance in deploy script."
+        echo "Create DNS A/AAAA records first, then run certbot manually:"
+        echo "sudo certbot --nginx -d \"$DOMAIN\" --non-interactive --agree-tos -m \"$EMAIL\" --redirect"
+    fi
 else
-    echo "Nginx configuration already exists."[cite: 1]
+    echo "Certbot not installed; skipping SSL certificate operations."
 fi
 
-echo "=== 4b. Setting Up SSL Certificate with Certbot ==="
-if ! command -v certbot &> /dev/null; then
-    echo "Certbot not found. Installing Certbot..."
-    sudo apt update
-    sudo apt install -y certbot python3-certbot-nginx
-else
-    echo "Certbot is already installed."[cite: 1]
-fi
-
-if [ ! -d "/etc/letsencrypt/live/$DOMAIN" ]; then
-    echo "Requesting new SSL certificate from Let's Encrypt..."
-    sudo certbot --nginx -d "$DOMAIN" --non-interactive --agree-tos -m "$EMAIL" --redirect
-else
-    echo "SSL certificate already exists. Checking for renewal..."
-    sudo certbot renew --quiet[cite: 1]
-fi
-
-echo "=== 5. Managing Application Process with PM2 == "
-if pm2 list | grep -q "gs.lean.unizik"; then
+echo "=== 6. Managing Application Process with PM2 ==="
+export PORT="$APP_PORT"
+cd "$APP_DIR"
+if pm2 describe "$APP_NAME" >/dev/null 2>&1; then
     echo "Restarting existing PM2 process..."
-    pm2 restart gs.lean.unizik
+    pm2 restart "$APP_NAME" --update-env
 else
     echo "Starting new PM2 process from standalone server..."
-    pm2 start server.js --name "gs.lean.unizik"
-    pm2 startup || true
-    pm2 save
+    pm2 start server.js --name "$APP_NAME" --cwd "$APP_DIR"
 fi
+pm2 save
 
-echo "=== Deployment Complete! ==="[cite: 1]
+echo "=== Deployment Complete! ==="
