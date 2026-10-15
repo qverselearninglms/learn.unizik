@@ -38,5 +38,5 @@ jobs:
         key: ${{ secrets.DO_SSH_PRIVATE_KEY }}
         envs: LOCAL_VARIABLES
         script: |
-          chmod +x ~/scripts/do/deploy-to-do.sh
-          sudo ~/scripts/do/deploy-to-do.sh
+          chmod +x /root/scripts/do/deploy-to-do.sh
+          sudo /root/scripts/do/deploy-to-do.sh
