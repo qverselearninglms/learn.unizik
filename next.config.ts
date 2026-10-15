@@ -4,7 +4,7 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true, // Add this for now to ensure deployment
   },
-
+  output: 'standalone',
   headers: async () => {
     return [
       {

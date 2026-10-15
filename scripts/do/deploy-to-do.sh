@@ -2,7 +2,6 @@
 set -e
 
 APP_DIR="/var/www/gs.lean.unizik"
-REPO_URL="https://github.com/qverselearninglms/learn.unizik.git"
 DOMAIN="learn.unizik.edu.ng"
 EMAIL="admin@unizik.edu.ng"
 
@@ -44,17 +43,8 @@ else
     echo "Swap space already exists."
 fi
 
-echo "=== 3. Deploying Application Code == "
-if [ ! -d "$APP_DIR" ]; then
-    echo "Cloning repository..."
-    sudo mkdir -p /var/www
-    sudo git clone "$REPO_URL" "$APP_DIR"
-else
-    echo "Repository directory exists. Pulling latest code..."
-    cd "$APP_DIR"
-    git pull origin main
-fi
-
+echo "=== 3. Deploying Application Artifacts == "
+sudo mkdir -p "$APP_DIR"
 cd "$APP_DIR"
 
 echo "Writing environment variables..."
@@ -64,12 +54,6 @@ if [ -n "$LOCAL_VARIABLES" ]; then
 else
     echo "Warning: LOCAL_VARIABLES is empty."
 fi
-
-echo "Installing project dependencies..."
-npm install
-
-echo "Building Next.js application..."
-npm run build
 
 echo "=== 4. Configuring Nginx Reverse Proxy == "
 NGINX_CONF="/etc/nginx/sites-available/$DOMAIN"
@@ -119,8 +103,8 @@ if pm2 list | grep -q "gs.lean.unizik"; then
     echo "Restarting existing PM2 process..."
     pm2 restart gs.lean.unizik
 else
-    echo "Starting new PM2 process..."
-    pm2 start npm --name "gs.lean.unizik" -- start
+    echo "Starting new PM2 process from standalone server..."
+    pm2 start server.js --name "gs.lean.unizik"
     pm2 startup || true
     pm2 save
 fi

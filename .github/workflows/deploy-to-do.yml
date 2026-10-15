@@ -12,6 +12,25 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Install dependencies and build standalone
+      run: |
+        npm ci
+        npm run build
+
+    - name: Prepare Standalone Artifact Package
+      run: |
+        mkdir -p deploy-package
+        cp -r .next/standalone/* deploy-package/
+        mkdir -p deploy-package/.next
+        cp -r .next/static deploy-package/.next/
+        cp -r public deploy-package/ || true
+
     - name: Create scripts directory on server
       uses: appleboy/ssh-action@master
       with:
@@ -20,14 +39,15 @@ jobs:
         key: ${{ secrets.DO_SSH_PRIVATE_KEY }}
         script: |
           mkdir -p /root/scripts/do
+          mkdir -p /var/www/gs.lean.unizik
         
-    - name: Upload deployment script
+    - name: Upload deployment script and build artifacts
       uses: appleboy/scp-action@master
       with:
         host: ${{ secrets.DO_SSH_HOST }}
         username: ${{ secrets.DO_SSH_USER }}
         key: ${{ secrets.DO_SSH_PRIVATE_KEY }}
-        source: "scripts/do/deploy-to-do.sh"
+        source: "scripts/do/deploy-to-do.sh,deploy-package/*"
         target: "/root/scripts/do"
         strip_components: 2
 
@@ -38,13 +58,15 @@ jobs:
         username: ${{ secrets.DO_SSH_USER }}
         key: ${{ secrets.DO_SSH_PRIVATE_KEY }}
         envs: LOCAL_VARIABLES
-        command_timeout: 20m
+        command_timeout: 30m
         script: |
           if [ ! -f /root/scripts/do/deploy-to-do.sh ]; then
             echo "Deployment script not found at /root/scripts/do/deploy-to-do.sh"
-            echo "Discovered script locations under /root/scripts:"
-            find /root/scripts -type f -name "deploy-to-do.sh" || true
             exit 1
           fi
+          # Move uploaded standalone files to the app web root
+          cp -r /root/scripts/do/* /var/www/gs.lean.unizik/ 2>/dev/null || true
+          rm -rf /var/www/gs.lean.unizik/deploy-to-do.sh /var/www/gs.lean.unizik/deploy-package || true
+          
           chmod +x /root/scripts/do/deploy-to-do.sh
           sudo /root/scripts/do/deploy-to-do.sh
