@@ -40,3 +40,5 @@ test.json
 *.tsbuildinfo
 next-env.d.ts
 *.zip
+env.backend
+/scripts/database.php
