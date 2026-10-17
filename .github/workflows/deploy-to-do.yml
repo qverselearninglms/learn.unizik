@@ -18,10 +18,35 @@ jobs:
         node-version: '22'
         cache: 'npm'
 
+    # NEXT_PUBLIC_* values are inlined into the JS bundle at build time,
+    # so the env file must exist BEFORE `npm run build`.
+    - name: Write env file for build
+      env:
+        LOCAL_VARIABLES: ${{ secrets.LOCAL_VARIABLES }}
+      run: |
+        if [ -z "$LOCAL_VARIABLES" ]; then
+          echo "LOCAL_VARIABLES secret is empty; refusing to build without env."
+          exit 1
+        fi
+        printf '%s\n' "$LOCAL_VARIABLES" > .env.production
+
     - name: Install dependencies and build standalone
       run: |
         npm ci
         npm run build
+
+    - name: Verify API domain was baked into the build
+      run: |
+        API_DOMAIN="$(grep -E '^NEXT_PUBLIC_EXTERNAL_API_DOMAIN=' .env.production | tail -n1 | cut -d= -f2- | tr -d '"' | tr -d "'" | tr -d '\r')"
+        if [ -z "$API_DOMAIN" ]; then
+          echo "NEXT_PUBLIC_EXTERNAL_API_DOMAIN is missing from LOCAL_VARIABLES."
+          exit 1
+        fi
+        if ! grep -rqF "$API_DOMAIN" .next/static .next/server; then
+          echo "API domain '$API_DOMAIN' was not found in the build output."
+          exit 1
+        fi
+        echo "API domain found in build output."
 
     - name: Prepare standalone artifact
       run: |
@@ -31,6 +56,8 @@ jobs:
         test -f standalone-artifact/server.js
         test -f standalone-artifact/.next/BUILD_ID
         cp -r public standalone-artifact/ || true
+        # Never ship env files inside the artifact; the server gets its own copy at deploy time.
+        rm -f standalone-artifact/.env standalone-artifact/.env.* || true
         tar -czf standalone-artifact.tar.gz -C standalone-artifact .
 
     - name: Create deploy directories on server
