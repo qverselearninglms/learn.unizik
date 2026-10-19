@@ -43,10 +43,11 @@ modules/gs-registration/
 
 ## 3. Workflow rules → where they're enforced
 
-1. **Gatekeeping** — `components/selection-bar.tsx` disables *Submit Course Registration* unless `hasPaidGsFee === true` from `GET /payment-status`. Loading, error and missing field all count as *not paid* (fail closed). `views/select-courses-view.tsx` computes `canSubmit`.
-2. **Async webhook verification** — the gateway's return URL query string is never trusted; only `reference` is read (and sanitised). `hooks/use-gs-payment.ts` polls `GET /payment/verify?reference=` every 3 s (max 40) until `SUCCESS | FAILED | CANCELLED`. The countdown starts only when verify says `SUCCESS` **and** `payment-status.hasPaidGsFee` has flipped to true. Unknown states are treated as `PENDING`, never as paid.
-3. **Receipt & docket** — `lib/pdf/build-receipt-pdf.ts` (jsPDF, lazy-loaded): passport, matric number, paid GST courses, payment refs, verification code, Directorate sign-off block.
-4. **Redirect** — verified → 10 s countdown → `gsConfig.routes.postPayment` (`/enrollment`, not built here). Student can go now, stay (cancel), or download the receipt.
+1. **Default flow** — the module is designed around a pay-gated flow. `components/selection-bar.tsx` disables *Submit Course Registration* unless `hasPaidGsFee === true` from `GET /payment-status`. Loading, error and missing field all count as *not paid* (fail closed). `views/select-courses-view.tsx` computes `canSubmit`.
+2. **Skip toggle** — set `NEXT_PUBLIC_SKIP_GS_PAYMENT=false` to restore the pay-gated flow. When `NEXT_PUBLIC_SKIP_GS_PAYMENT` is not set, or is set to any value other than `false`, the module treats the payment phase as skipped while leaving the legacy pay code in place. The page still renders the payment flow, but it exits early without forcing the student through it.
+3. **Async webhook verification** — the gateway's return URL query string is never trusted; only `reference` is read (and sanitised). `hooks/use-gs-payment.ts` polls `GET /payment/verify?reference=` every 3 s (max 40) until `SUCCESS | FAILED | CANCELLED`. The countdown starts only when verify says `SUCCESS` **and** `payment-status.hasPaidGsFee` has flipped to true. Unknown states are treated as `PENDING`, never as paid.
+4. **Receipt & docket** — `lib/pdf/build-receipt-pdf.ts` (jsPDF, lazy-loaded): passport, matric number, paid GST courses, payment refs, verification code, Directorate sign-off block.
+5. **Redirect** — verified → 10 s countdown → `gsConfig.routes.postPayment` (`/enrollment`, not built here). Student can go now, stay (cancel), or download the receipt.
 
 ## 4. API contract (backend)
 

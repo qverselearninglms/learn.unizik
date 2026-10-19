@@ -36,10 +36,12 @@ function SelectCoursesContent() {
     const toggle = useGsStore((s) => s.toggle);
     const setPendingReference = useGsStore((s) => s.setPendingReference);
 
+    const paymentSkipped = gsConfig.skipPaymentPhase;
     const payload = coursesQuery.data;
     const paidIds = useMemo(() => status.data?.paidCourseIds ?? [], [status.data?.paidCourseIds]);
+    const effectiveHasPaid = paymentSkipped || status.hasPaidGsFee;
     /** Once paid, the paid set is final: the fee was calculated for exactly those courses. */
-    const lockAll = status.hasPaidGsFee && paidIds.length > 0;
+    const lockAll = effectiveHasPaid && paidIds.length > 0;
 
     const mandatoryIds = useMemo(() => payload?.courses.filter((c) => c.mandatory).map((c) => c.id) ?? [], [payload]);
     const lockedIds = useMemo(() => new Set(lockAll ? payload?.courses.map((c) => c.id) : mandatoryIds), [lockAll, payload, mandatoryIds]);
@@ -58,14 +60,14 @@ function SelectCoursesContent() {
 
     const summary = useMemo(() => summariseSelection(selectedIds, payload), [selectedIds, payload]);
     const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds]);
-    const paidSet = useMemo(() => new Set(status.hasPaidGsFee ? paidIds : []), [status.hasPaidGsFee, paidIds]);
+    const paidSet = useMemo(() => new Set(effectiveHasPaid ? paidIds : []), [effectiveHasPaid, paidIds]);
 
     const feeTotal = payload ? payload.fee.amount + payload.fee.serviceCharge : 0;
     const statusReady = !status.isLoading && !status.isError;
 
-    const canPay = Boolean(payload) && statusReady && !status.hasPaidGsFee && summary.valid;
-    // Workflow rule #1: only the verified backend flag can enable submission.
-    const canSubmit = status.hasPaidGsFee === true && summary.valid && !status.registrationSubmitted && !submit.isPending;
+    const canPay = !paymentSkipped && Boolean(payload) && statusReady && !effectiveHasPaid && summary.valid;
+    // Product requirement: the payment phase can be skipped while the legacy pay flow stays in place.
+    const canSubmit = summary.valid && !status.registrationSubmitted && !submit.isPending && (paymentSkipped || status.hasPaidGsFee === true);
 
     const handlePay = () => {
         setPendingReference(null);
@@ -89,7 +91,7 @@ function SelectCoursesContent() {
     return (
         <GsPageShell
             step="select"
-            completed={status.hasPaidGsFee ? ['select', 'pay'] : []}
+        completed={effectiveHasPaid && !paymentSkipped ? ['select', 'pay'] : ['select']}
             withActionBar
             title="General Studies registration"
             description={
@@ -105,7 +107,8 @@ function SelectCoursesContent() {
                     isLoading={status.isLoading}
                     isError={status.isError}
                     onRetry={() => status.refetch()}
-                    hasPaid={status.hasPaidGsFee}
+                    hasPaid={effectiveHasPaid}
+                    paymentSkipped={paymentSkipped}
                     reference={status.data?.reference}
                     paidAt={status.data?.paidAt}
                 />
@@ -150,7 +153,7 @@ function SelectCoursesContent() {
                     issues={summary.issues}
                     statusLoading={status.isLoading}
                     statusError={status.isError}
-                    hasPaid={status.hasPaidGsFee}
+                    hasPaid={effectiveHasPaid}
                     submitted={status.registrationSubmitted}
                     canPay={canPay}
                     canSubmit={canSubmit}

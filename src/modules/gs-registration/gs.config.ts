@@ -5,6 +5,7 @@
 
 const API_PREFIX = (process.env.NEXT_PUBLIC_GS_API_PREFIX ?? '/account/student/gs').replace(/\/$/, '');
 const BASE = '/gs-registration';
+const skipPaymentFlag = (process.env.NEXT_PUBLIC_SKIP_GS_PAYMENT ?? 'true').trim().toLowerCase();
 
 export const gsConfig = {
     /** Frontend routes. Change `BASE` (and move the route folder) to mount elsewhere. */
@@ -44,6 +45,9 @@ export const gsConfig = {
         .split(',')
         .map((h) => h.trim().toLowerCase())
         .filter(Boolean),
+
+    /** Product requirement can skip the GS payment step after choosing courses while keeping the pay flow in code. */
+    skipPaymentPhase: skipPaymentFlag !== 'false',
 
     /** Local, in-browser fake backend so the UI can be exercised before the API exists. */
     useMock: process.env.NEXT_PUBLIC_GS_MOCK === 'true',

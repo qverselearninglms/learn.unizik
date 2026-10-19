@@ -13,12 +13,13 @@ interface Props {
     isError: boolean;
     onRetry: () => void;
     hasPaid: boolean;
+    paymentSkipped?: boolean;
     reference?: string;
     paidAt?: string;
 }
 
 /** Tells the student — and explains why — registration is locked or unlocked. */
-export function PaymentGate({ isLoading, isError, onRetry, hasPaid, reference, paidAt }: Props) {
+export function PaymentGate({ isLoading, isError, onRetry, hasPaid, paymentSkipped = false, reference, paidAt }: Props) {
     const reduce = useReducedMotion();
     const key = isLoading ? 'loading' : isError ? 'error' : hasPaid ? 'paid' : 'unpaid';
 
@@ -78,10 +79,18 @@ export function PaymentGate({ isLoading, isError, onRetry, hasPaid, reference, p
                         )}
                         {key === 'paid' && (
                             <>
-                                <p className="font-medium text-emerald-900 dark:text-emerald-200">GS fee paid</p>
+                                <p className="font-medium text-emerald-900 dark:text-emerald-200">
+                                    {paymentSkipped ? 'Payment step skipped' : 'GS fee paid'}
+                                </p>
                                 <p className="text-sm text-emerald-900/80 dark:text-emerald-200/80">
-                                    {reference ? <span className="font-mono">{reference}</span> : 'Payment verified'}
-                                    {paidAt ? ` · ${formatDateTime(paidAt)}` : ''}
+                                    {paymentSkipped
+                                        ? 'This portal is configured to continue without the GS payment step.'
+                                        : (
+                                            <>
+                                                {reference ? <span className="font-mono">{reference}</span> : 'Payment verified'}
+                                                {paidAt ? ` · ${formatDateTime(paidAt)}` : ''}
+                                            </>
+                                        )}
                                 </p>
                                 <Button asChild variant="link" size="sm" className="mt-1 h-auto p-0 text-emerald-900 dark:text-emerald-200">
                                     <Link href={gsConfig.routes.receipt}>View receipt</Link>

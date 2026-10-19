@@ -42,6 +42,24 @@ function PayContent() {
     const params = useSearchParams();
     const queryClient = useQueryClient();
 
+    if (gsConfig.skipPaymentPhase) {
+        return (
+            <GsPageShell step="pay" completed={['select']} title="Payment phase skipped">
+                <MockBanner />
+                <FullPageMessage
+                    icon={<BadgeCheck className="size-6 text-emerald-600" />}
+                    title="The GS payment step is skipped for this portal"
+                    description="You can continue with your course registration without going through the payment screen."
+                    actions={
+                        <Button asChild>
+                            <Link href={gsConfig.routes.base}>Back to course selection</Link>
+                        </Button>
+                    }
+                />
+            </GsPageShell>
+        );
+    }
+
     const pendingReference = useGsStore((s) => s.pendingReference);
     const setPendingReference = useGsStore((s) => s.setPendingReference);
     const selectedIds = useGsStore((s) => s.selectedIds);

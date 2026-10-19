@@ -2,6 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { gsApi } from '../api/gs-api';
+import { gsConfig } from '../gs.config';
 import { gsKeys } from './query-keys';
 
 interface Options {
@@ -25,7 +26,7 @@ export function useGsPaymentStatus({ pollUntilPaid = false }: Options = {}) {
 
     return {
         ...query,
-        hasPaidGsFee: query.data?.hasPaidGsFee === true,
+        hasPaidGsFee: gsConfig.skipPaymentPhase || query.data?.hasPaidGsFee === true,
         registrationSubmitted: query.data?.registrationSubmitted === true,
     };
 }
