@@ -1,39 +1,21 @@
-'use client';
-
-import React, { RefObject, useRef } from 'react';
-import { useIntersectionObserver } from '@/hooks/animations/useScrollAnimation';
 import { STATS } from '@/lib/constants';
 
 export const Stats: React.FC = () => {
-    const statsRef = useRef<HTMLDivElement>(null);
-    const isVisible = useIntersectionObserver(statsRef as RefObject<HTMLElement>);
-
     return (
-        <section
-            ref={statsRef}
-            className="bg-gradient-to-br from-blue-800 to-blue-600 text-white py-16 px-6 text-center"
-        >
-            <div className="max-w-8xl mx-auto">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-10">
-                    {STATS.map((stat, index) => (
-                        <div key={index} className="text-center">
-                            <span
-                                className={`text-4xl md:text-5xl font-extrabold block mb-2 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-                                    }`}
-                                style={{ transitionDelay: `${index * 200}ms` }}
-                            >
-                                {stat.number}
-                            </span>
-                            <span
-                                className={`text-base opacity-90 transition-all duration-1000 ${isVisible ? 'opacity-90 translate-y-0' : 'opacity-0 translate-y-4'
-                                    }`}
-                                style={{ transitionDelay: `${index * 200 + 100}ms` }}
-                            >
-                                {stat.label}
-                            </span>
+        <section aria-label="UNIZIK in numbers" className="relative overflow-hidden bg-brand-navy text-white">
+            <div aria-hidden className="bg-grid-faint absolute inset-0" />
+            <div className="container-page relative">
+                <dl className="grid grid-cols-2 lg:grid-cols-4 lg:divide-x lg:divide-white/10">
+                    {STATS.map((stat) => (
+                        <div key={stat.label} className="flex flex-col-reverse items-center px-2 py-12 text-center sm:py-16">
+                            <dt className="mt-2 text-xs font-medium uppercase tracking-[0.2em] text-white/55">{stat.label}</dt>
+                            <dd className="font-display text-5xl font-semibold tracking-tight sm:text-6xl">
+                                {stat.number.replace(/\+$/, '')}
+                                {stat.number.endsWith('+') && <span className="text-accent">+</span>}
+                            </dd>
                         </div>
                     ))}
-                </div>
+                </dl>
             </div>
         </section>
     );

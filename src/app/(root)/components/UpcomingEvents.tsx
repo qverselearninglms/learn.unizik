@@ -1,4 +1,3 @@
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import Link from "next/link";
 
 export default function UpcomingEvents() {
@@ -30,39 +29,39 @@ export default function UpcomingEvents() {
     ];
 
     return (
-        <Card className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm dark:shadow-gray-700/30 h-full">
-            <CardHeader className="text-2xl font-bold text-[#23608c] dark:text-blue-400 mb-6">
-                Upcoming Events
-            </CardHeader>
+        <article className="flex h-full flex-col rounded-[28px] bg-brand-navy p-7 text-white shadow-lift sm:p-9">
+            <h3 className="font-display text-2xl font-semibold">Upcoming events</h3>
 
-            <CardContent className="space-y-4">
-                {events.map((event, index) => (
-                    <div
-                        key={index}
-                        className="flex items-start border-l-2 border-[#d25400] dark:border-orange-400 pl-4 py-2"
-                    >
-                        <div className="mr-4 text-center">
-                            <div className="bg-[#23608c] dark:bg-blue-600 text-white font-bold rounded px-3 py-1">
-                                {event.date}
+            <ol className="mt-6 space-y-3">
+                {events.map((event) => {
+                    const [month, day] = event.date.split(' ');
+                    return (
+                        <li
+                            key={event.title}
+                            className="flex gap-4 rounded-2xl border border-white/10 bg-white/[0.04] p-4 transition-colors hover:bg-white/[0.08]"
+                        >
+                            <div className="flex w-12 shrink-0 flex-col items-center justify-center rounded-xl bg-white text-[var(--navy-950)]">
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-accent">{month}</span>
+                                <span className="font-display text-xl font-semibold leading-none">{day}</span>
                             </div>
-                        </div>
-                        <div>
-                            <h3 className="font-semibold dark:text-white">{event.title}</h3>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">{event.time}</p>
-                            <p className="text-sm text-gray-600 dark:text-gray-300">{event.location}</p>
-                        </div>
-                    </div>
-                ))}
-            </CardContent>
+                            <div className="min-w-0">
+                                <h4 className="font-semibold leading-snug">{event.title}</h4>
+                                <p className="mt-1 text-xs text-white/60">{event.time}</p>
+                                <p className="text-xs text-white/60">{event.location}</p>
+                            </div>
+                        </li>
+                    );
+                })}
+            </ol>
 
-            <CardFooter className="mt-6 text-center">
+            <div className="mt-auto pt-6">
                 <Link
                     href="#"
-                    className="inline-block bg-[#23608c] dark:bg-blue-600 hover:bg-[#1d5175] dark:hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors text-sm font-medium"
+                    className="inline-flex w-full items-center justify-center rounded-full bg-white/10 px-5 py-2.5 text-sm font-semibold transition-colors hover:bg-white/15"
                 >
-                    View Calendar
+                    View full calendar
                 </Link>
-            </CardFooter>
-        </Card>
+            </div>
+        </article>
     );
 }

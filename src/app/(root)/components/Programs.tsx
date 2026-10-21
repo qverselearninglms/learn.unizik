@@ -1,63 +1,48 @@
-"use client";
-
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { useIntersectionObserver } from '@/hooks/animations/useScrollAnimation';
+import Link from 'next/link';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { ArrowRight01Icon, Clock01Icon } from '@hugeicons/core-free-icons';
 import { PROGRAMS } from '@/lib/constants';
-import React, { RefObject, useRef } from 'react';
+import { SectionHeading } from './SectionHeading';
 
 export const Programs: React.FC = () => {
-    const pRef = useRef<HTMLDivElement>(null);
-    const isVisible = useIntersectionObserver(pRef as RefObject<HTMLElement>);
-
     return (
-        <section
-            ref={pRef}
-            id="programs"
-            className="py-20 px-6 bg-white dark:bg-gray-800 min-h-[85vh] flex items-center justify-center"
-        >
-            <div className="max-w-7xl mx-auto">
-                <div className="text-center mb-16">
-                    <h2 className="text-3xl md:text-4xl font-bold text-gray-800 dark:text-white mb-4">
-                        Featured Academic Programs
-                    </h2>
-                    <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-                        Choose from our comprehensive range of business programs designed to meet
-                        diverse career goals and industry demands.
-                    </p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    {PROGRAMS.map((program, index) => (
-                        <Card key={index}
-                            className={`bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-2xl p-8 border border-gray-200 dark:border-gray-600 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg dark:hover:shadow-gray-800/50 border-t-4 border-t-accent ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-                                }`}
-                            style={{ transitionDelay: `${index * 200}ms` }}
+        <section id="programs" className="relative bg-background py-24 sm:py-28">
+            <div className="container-page">
+                <SectionHeading
+                    eyebrow="Academic programmes"
+                    title="Explore programmes across our faculties"
+                    description="From the sciences to the humanities, study a curriculum shaped by decades of academic excellence."
+                    action={
+                        <Link
+                            href="/enrollment"
+                            className="group inline-flex items-center gap-2 rounded-full border border-[var(--hairline)] px-5 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
                         >
-                            <CardHeader
-                                className={`flex flex-row items-center gap-3 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-                                    }`}
-                                style={{ transitionDelay: `${index * 300 + 200}ms` }}
-                            >
-                                <div className={`bg-[#23608c]/10 dark:bg-[#23608c]/20 p-2 rounded-md`}>
-                                    <program.icon className="h-6 w-6 text-[#23608c] dark:text-blue-400" />
-                                </div>
-                                <CardTitle className="text-xl font-semibold text-gray-800 dark:text-white mb-4">{program.title}</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <CardDescription className='text-gray-600 dark:text-gray-300 text-xl mb-6 leading-relaxed'>{program.description}</CardDescription>
-                            </CardContent>
-                            <CardFooter className="flex justify-between items-center">
-                                <span className="bg-primary-600 dark:bg-primary-700 text-white px-3 py-1 rounded-full text-sm font-medium">
-                                    {program.duration}
+                            Browse all courses
+                            <HugeiconsIcon icon={ArrowRight01Icon} className="size-4 transition-transform group-hover:translate-x-0.5" />
+                        </Link>
+                    }
+                />
+
+                <ul className="grid overflow-hidden rounded-[28px] border border-[var(--hairline)] bg-[var(--hairline)] sm:grid-cols-2 lg:grid-cols-3 [&>li]:bg-card gap-px">
+                    {PROGRAMS.map(({ icon: Icon, title, description, duration }) => (
+                        <li key={title} className="group relative p-8 transition-colors duration-300 hover:bg-[var(--ivory)]">
+                            <div className="flex items-center justify-between">
+                                <span className="grid size-11 place-items-center rounded-xl border border-[var(--hairline)] text-primary transition-colors group-hover:border-accent/30 group-hover:text-accent dark:text-[oklch(0.8_0.08_250)]">
+                                    <HugeiconsIcon icon={Icon} className="size-5" />
                                 </span>
-                                <Button className="text-blue-600 dark:text-blue-400 font-medium hover:text-blue-800 dark:hover:text-blue-300 transition-colors duration-200 cursor-pointer bg-transparent border-none">
-                                    Learn More →
-                                </Button>
-                            </CardFooter>
-                        </Card>
+                                <span className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                                    <HugeiconsIcon icon={Clock01Icon} className="size-3.5" /> {duration}
+                                </span>
+                            </div>
+                            <h3 className="font-display mt-7 text-2xl font-semibold text-foreground">{title}</h3>
+                            <p className="mt-2 leading-relaxed text-muted-foreground">{description}</p>
+                            <span
+                                aria-hidden
+                                className="absolute inset-x-8 bottom-0 h-0.5 origin-left scale-x-0 bg-accent transition-transform duration-500 group-hover:scale-x-100"
+                            />
+                        </li>
                     ))}
-                </div>
+                </ul>
             </div>
         </section>
     );

@@ -24,7 +24,19 @@ export const gsConfig = {
         initiate: `${API_PREFIX}/payment/initiate`,
         verify: `${API_PREFIX}/payment/verify`,
         receipt: `${API_PREFIX}/receipt`,
-        register: `${API_PREFIX}/registration`,
+        /** "Complete enrollment" (POST). Override once the backend route is final. */
+        register: process.env.NEXT_PUBLIC_GS_COMPLETE_ENROLLMENT_PATH ?? `${API_PREFIX}/registration`,
+    },
+
+    /** Used when the backend's `/courses` response omits them (the live API currently does). */
+    defaults: {
+        session: process.env.NEXT_PUBLIC_GS_SESSION ?? '2025/2026',
+        semester: process.env.NEXT_PUBLIC_GS_SEMESTER ?? 'First semester',
+        fee: {
+            amount: Number(process.env.NEXT_PUBLIC_GS_FEE_AMOUNT ?? 7500),
+            serviceCharge: Number(process.env.NEXT_PUBLIC_GS_FEE_SERVICE_CHARGE ?? 250),
+            currency: 'NGN',
+        },
     },
 
     /** Seconds on the post-payment countdown before redirecting to `routes.postPayment`. */
@@ -48,6 +60,12 @@ export const gsConfig = {
 
     /** Product requirement can skip the GS payment step after choosing courses while keeping the pay flow in code. */
     skipPaymentPhase: skipPaymentFlag !== 'false',
+
+    /**
+     * POST the student's courses to `endpoints.register` on "Complete enrollment". Off by default
+     * while the backend route is being built; until then the button just takes them to /enrollment.
+     */
+    submitToBackend: process.env.NEXT_PUBLIC_GS_SUBMIT_REGISTRATION === 'true',
 
     /** Local, in-browser fake backend so the UI can be exercised before the API exists. */
     useMock: process.env.NEXT_PUBLIC_GS_MOCK === 'true',

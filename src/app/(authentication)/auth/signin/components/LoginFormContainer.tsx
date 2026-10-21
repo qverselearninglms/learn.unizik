@@ -1,30 +1,29 @@
 "use client";
 
 import React from 'react'
+import { HugeiconsIcon } from '@hugeicons/react';
+import { ArrowRight01Icon, LockPasswordIcon, Mail01Icon } from '@hugeicons/core-free-icons';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
 import { useLoginFormContext } from '@/contexts/FormContext';
-import RoleSelector, { FormActions } from './LoginFormFields';
+import { FormActions } from './LoginFormFields';
 import { Button } from '@/components/ui/button';
-import { PasswordInputField } from '@/components/core/forms/input-field';
+import { InputField, PasswordInputField } from '@/components/core/forms/input-field';
 
 const LoginFormContainer = () => {
     const { form, onSubmit, isLoggingIn, userType } = useLoginFormContext()
 
     return (
         <Form  {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-                <RoleSelector />
-
-                <div className="grid gap-6 mt-10 mb-10">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <div className="grid gap-5">
                     <FormField
                         control={form.control}
                         name="email"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Email Address</FormLabel>
+                                <FormLabel className="font-semibold">Email address</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="Eneter email address" {...field} />
+                                    <InputField type="email" autoComplete="email" icon={Mail01Icon} placeholder="you@unizik.edu.ng" {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -36,9 +35,9 @@ const LoginFormContainer = () => {
                         name="otp"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>{`OTP (Check your email address)`}</FormLabel>
+                                <FormLabel className="font-semibold">{`OTP (Check your email address)`}</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="Eneter the OTP you recieved in youe email" {...field} /><Input placeholder="Eneter the OTP you recieved in youe email" {...field} />
+                                    <InputField icon={LockPasswordIcon} placeholder="Enter the OTP you received in your email" {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -50,9 +49,9 @@ const LoginFormContainer = () => {
                         name="password"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Password</FormLabel>
+                                <FormLabel className="font-semibold">Password</FormLabel>
                                 <FormControl>
-                                    <PasswordInputField placeholder="Enter your password" {...field} />
+                                    <PasswordInputField autoComplete="current-password" icon={LockPasswordIcon} placeholder="Enter your password" {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -64,22 +63,20 @@ const LoginFormContainer = () => {
                     register={form.register}
                 />
 
-                <div className="animate-in fade-in-50 duration-700 delay-600">
-                    <Button
-                        type="submit"
-                        variant="gradient"
-                        size="xl"
-                        className="w-full"
-                        loading={isLoggingIn}
-                        disabled={!form.formState.isValid || isLoggingIn}
-                    >
-                        Sign in
-                    </Button>
-                </div>
+                <Button
+                    type="submit"
+                    variant="gradient"
+                    size="xl"
+                    className="h-12 w-full rounded-full text-base"
+                    loading={isLoggingIn}
+                    disabled={!form.formState.isValid || isLoggingIn}
+                >
+                    Sign in
+                    <HugeiconsIcon icon={ArrowRight01Icon} className="size-5" />
+                </Button>
             </form>
         </Form>
     )
 }
 
 export default LoginFormContainer
-

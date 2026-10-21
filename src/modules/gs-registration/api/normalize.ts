@@ -21,6 +21,9 @@ export function unwrapPayload(res: unknown): unknown {
     if (res && typeof res === 'object' && !Array.isArray(res)) {
         const r = res as Record<string, unknown>;
         if ('data' in r && r.data !== null && typeof r.data === 'object') return camelizeKeys(r.data);
+        // `{ status: "success", data: null }` means "no record". Never let the envelope's own
+        // `status` leak into the payload, or it would be read as a payment state.
+        if ('data' in r && r.data == null) return { message: r.message };
     }
     return camelizeKeys(res);
 }

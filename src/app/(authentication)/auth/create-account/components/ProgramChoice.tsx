@@ -17,12 +17,9 @@ export const ProgramChoice: React.FC<ProgramChoiceProps> = ({
 }) => {
     return (
         <div className="space-y-6">
-            <div>
-                <h5 className="text-2xl font-bold text-accent">Select Program of Study</h5>
-                <p className="text-sm text-gray-500 mt-1">
-                    Navigate through the categories and enroll in your desired program.
-                </p>
-            </div>
+            <p className="text-sm text-muted-foreground">
+                Browse the categories below and pick the programme you are enrolling in.
+            </p>
 
             <ProgramSelector
                 setValue={setValue}

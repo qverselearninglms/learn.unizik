@@ -3,18 +3,19 @@
 import React, { useEffect, useRef } from 'react';
 import { motion, AnimatePresence, Variants, Easing } from 'framer-motion';
 import { gsap } from 'gsap';
+import { HugeiconsIcon } from '@hugeicons/react';
 import {
-    ChevronRight,
-    ChevronLeft,
-    GraduationCap,
-    BookOpen,
-    Folder,
-    FolderOpen,
-    CheckCircle2,
-    Loader2,
-    AlertCircle,
-    RefreshCcw,
-} from 'lucide-react';
+    Alert02Icon,
+    ArrowLeft01Icon,
+    ArrowRight01Icon,
+    BookOpen01Icon,
+    CheckmarkCircle02Icon,
+    Folder01Icon,
+    FolderOpenIcon,
+    Loading03Icon,
+    Mortarboard02Icon,
+    RefreshIcon,
+} from '@hugeicons/core-free-icons';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -22,7 +23,7 @@ import { useProgramStore, CategoryNode } from '@/store/useProgramStore';
 import { useProgramCategories } from '@/hooks/useProgramCategories';
 import { UseFormSetValue, UseFormTrigger } from 'react-hook-form';
 import { SignUpFormData } from '@/schema/sign-up-schema';
-import { cn, extractLevel } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 
 interface ProgramSelectorProps {
     setValue: UseFormSetValue<SignUpFormData>;
@@ -55,9 +56,9 @@ const cardVariants: Variants = {
 // ─── Depth-aware icon picker ───────────────────────────────────────────────────
 
 function getDepthIcon(depth: number, hasChildren: boolean): React.ReactNode {
-    if (!hasChildren) return <GraduationCap className="w-5 h-5" />;
-    if (depth === 0) return <BookOpen className="w-5 h-5" />;
-    return <Folder className="w-5 h-5" />;
+    if (!hasChildren) return <HugeiconsIcon icon={Mortarboard02Icon} className="w-5 h-5" />;
+    if (depth === 0) return <HugeiconsIcon icon={BookOpen01Icon} className="w-5 h-5" />;
+    return <HugeiconsIcon icon={Folder01Icon} className="w-5 h-5" />;
 }
 
 // ─── Breadcrumb Component ──────────────────────────────────────────────────────
@@ -85,7 +86,7 @@ function Breadcrumb({ stack, onJumpTo }: BreadcrumbProps) {
             </button>
             {stack.map((node, i) => (
                 <React.Fragment key={node.id}>
-                    <ChevronRight className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                    <HugeiconsIcon icon={ArrowRight01Icon} className="w-3 h-3 text-gray-400 flex-shrink-0" />
                     <button
                         type="button"
                         onClick={() => onJumpTo(i)}
@@ -176,7 +177,7 @@ function CategoryCard({ node, depth, onSelect, onEnroll }: CategoryCardProps) {
 
                         {/* Right: action */}
                         {hasChildren ? (
-                            <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                            <HugeiconsIcon icon={ArrowRight01Icon} className="w-4 h-4 text-gray-400 flex-shrink-0" />
                         ) : (
                             <Button
                                 type="button"
@@ -187,7 +188,7 @@ function CategoryCard({ node, depth, onSelect, onEnroll }: CategoryCardProps) {
                                 }}
                                 className="flex-shrink-0 bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-1.5 h-auto rounded-lg"
                             >
-                                <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" />
+                                <HugeiconsIcon icon={CheckmarkCircle02Icon} className="w-3.5 h-3.5 mr-1.5" />
                                 Enroll In This Program
                             </Button>
                         )}
@@ -227,13 +228,10 @@ export function ProgramSelector({ setValue, trigger, error }: ProgramSelectorPro
             trigger('program_id');
             setValue('program', selectedProgram.name, { shouldValidate: true });
             trigger('program');
-            setValue('level', extractLevel(selectedProgram.name ?? "") ?? 0, { shouldValidate: true });
-            trigger('level');
         } else {
             // Reset to empty; cast needed because zod schema accepts number
             setValue('program_id', undefined as unknown as number, { shouldValidate: true });
             setValue('program', undefined as unknown as string, { shouldValidate: true });
-            setValue('level', undefined as unknown as number, { shouldValidate: true });
         }
     }, [selectedProgram, setValue, trigger]);
 
@@ -263,7 +261,7 @@ export function ProgramSelector({ setValue, trigger, error }: ProgramSelectorPro
     if (isLoading) {
         return (
             <div className="flex flex-col items-center justify-center py-16 gap-3">
-                <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+                <HugeiconsIcon icon={Loading03Icon} className="w-8 h-8 text-blue-500 animate-spin" />
                 <p className="text-sm text-gray-500">Loading programs&hellip;</p>
             </div>
         );
@@ -274,7 +272,7 @@ export function ProgramSelector({ setValue, trigger, error }: ProgramSelectorPro
         return (
             <div className="flex flex-col items-center justify-center py-12 gap-4">
                 <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
-                    <AlertCircle className="w-6 h-6 text-red-500" />
+                    <HugeiconsIcon icon={Alert02Icon} className="w-6 h-6 text-red-500" />
                 </div>
                 <div className="text-center">
                     <p className="text-sm font-medium text-gray-800">Failed to load programs</p>
@@ -288,7 +286,7 @@ export function ProgramSelector({ setValue, trigger, error }: ProgramSelectorPro
                     disabled={isFetching}
                     className="flex items-center gap-2"
                 >
-                    <RefreshCcw className={cn('w-3.5 h-3.5', isFetching && 'animate-spin')} />
+                    <HugeiconsIcon icon={RefreshIcon} className={cn('w-3.5 h-3.5', isFetching && 'animate-spin')} />
                     Retry
                 </Button>
             </div>
@@ -308,7 +306,7 @@ export function ProgramSelector({ setValue, trigger, error }: ProgramSelectorPro
                                     onClick={goBack}
                                     className="w-7 h-7 rounded-lg bg-white border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors shadow-sm"
                                 >
-                                    <ChevronLeft className="w-4 h-4 text-gray-600" />
+                                    <HugeiconsIcon icon={ArrowLeft01Icon} className="w-4 h-4 text-gray-600" />
                                 </button>
                             )}
                             <CardTitle className="text-sm font-semibold text-gray-700">
@@ -350,7 +348,7 @@ export function ProgramSelector({ setValue, trigger, error }: ProgramSelectorPro
 
                     {currentNodes.length === 0 && (
                         <motion.div variants={cardVariants} className="text-center py-10">
-                            <FolderOpen className="w-10 h-10 text-gray-300 mx-auto mb-2" />
+                            <HugeiconsIcon icon={FolderOpenIcon} className="w-10 h-10 text-gray-300 mx-auto mb-2" />
                             <p className="text-sm text-gray-400">No items in this category.</p>
                         </motion.div>
                     )}
@@ -364,7 +362,7 @@ export function ProgramSelector({ setValue, trigger, error }: ProgramSelectorPro
                     animate={{ opacity: 1, y: 0 }}
                     className="text-sm text-red-600 flex items-center gap-1.5"
                 >
-                    <AlertCircle className="w-3.5 h-3.5" />
+                    <HugeiconsIcon icon={Alert02Icon} className="w-3.5 h-3.5" />
                     {error}
                 </motion.p>
             )}
@@ -380,7 +378,7 @@ export function ProgramSelector({ setValue, trigger, error }: ProgramSelectorPro
                         className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 flex items-start gap-3"
                     >
                         <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                            <HugeiconsIcon icon={CheckmarkCircle02Icon} className="w-4 h-4 text-emerald-600" />
                         </div>
                         <div className="flex-1 min-w-0">
                             <p className="text-xs text-emerald-600 font-medium uppercase tracking-wide mb-0.5">

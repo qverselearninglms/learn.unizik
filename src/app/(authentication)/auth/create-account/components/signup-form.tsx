@@ -1,6 +1,7 @@
 'use client';
 
-import { Check, ChevronLeft, ChevronRight } from 'lucide-react';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { ArrowLeft01Icon, ArrowRight01Icon, Tick02Icon } from '@hugeicons/core-free-icons';
 import { useSignup } from '@/hooks/use-signup';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -48,6 +49,19 @@ export function SignupForm() {
             <FormErrorList errors={errors} isTriggered={trigerSubmit} />
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                <div className="rounded-3xl border border-[var(--hairline)] bg-card p-6 shadow-soft sm:p-8">
+                    <div className="mb-6 flex items-center gap-3 border-b border-[var(--hairline)] pb-5">
+                        <span className="grid size-10 place-items-center rounded-xl bg-primary/[0.07] text-primary dark:bg-white/[0.06] dark:text-[oklch(0.8_0.08_250)]">
+                            <HugeiconsIcon icon={steps[currentStep].icon} className="size-5" />
+                        </span>
+                        <div>
+                            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">
+                                Step {currentStep + 1} of {steps.length}
+                            </p>
+                            <h3 className="text-lg font-bold text-foreground">{steps[currentStep].description}</h3>
+                        </div>
+                    </div>
+
                 {/* Step 1: Personal Information */}
                 {currentStep === 0 && (
                     <motion.div
@@ -98,6 +112,8 @@ export function SignupForm() {
                     </motion.div>
                 )}
 
+                </div>
+
                 {error && (
                     <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
                         <p className="text-sm text-destructive">{error}</p>
@@ -105,48 +121,49 @@ export function SignupForm() {
                 )}
 
                 {/* Navigation */}
-                <div className="flex justify-between items-center pt-8 border-t border-border mt-20">
-                    <button
+                <div className="flex items-center justify-between gap-3 pt-2">
+                    <Button
                         type="button"
+                        variant="outline"
                         onClick={prevStep}
                         disabled={currentStep === 0}
-                        className="flex items-center px-4 py-2 text-sm font-medium text-foreground bg-background border border-input rounded-md hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                        className="h-12 rounded-full px-6"
                     >
-                        <ChevronLeft className="w-4 h-4 mr-1" />
-                        Previous
-                    </button>
-
-                    <div className="text-sm text-muted-foreground">
-                        Step {currentStep + 1} of {steps.length}
-                    </div>
+                        <HugeiconsIcon icon={ArrowLeft01Icon} className="size-4" />
+                        Back
+                    </Button>
 
                     {currentStep === steps.length - 1 ? (
                         <Button
                             type="submit"
+                            variant="gradient"
                             disabled={!isValid || isLoading}
                             loading={isLoading}
-                            className="flex items-center px-6 py-2 text-sm font-medium text-primary-foreground bg-primary border border-transparent rounded-md hover:bg-primary/90 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed transition-colors"
+                            onClick={() => setTrigerSubmit(true)}
+                            className="h-12 rounded-full px-7 text-base"
                         >
-                            <Check className="w-4 h-4 ml-1" />
-                            Complete Registration
+                            <HugeiconsIcon icon={Tick02Icon} className="size-5" />
+                            Create account
                         </Button>
                     ) : (
                         <Button
+                            type="button"
+                            variant="gradient"
                             onClick={nextStep}
-                            className="flex items-center px-4 py-2 text-sm font-medium text-primary-foreground bg-primary border border-transparent rounded-md hover:bg-primary/90 cursor-pointer transition-colors"
+                            className="h-12 rounded-full px-7 text-base"
                         >
-                            Next
-                            <ChevronRight className="w-4 h-4 ml-1" />
+                            Continue
+                            <HugeiconsIcon icon={ArrowRight01Icon} className="size-5" />
                         </Button>
                     )}
                 </div>
 
-                <div className="text-center text-sm text-muted-foreground">
+                <p className="text-center text-sm text-muted-foreground">
                     Already have an account?{' '}
-                    <Link href="/auth/signin" className="text-primary hover:underline font-medium">
-                        Sign in here
+                    <Link href="/auth/signin" className="font-semibold text-accent underline-offset-4 hover:underline">
+                        Sign in
                     </Link>
-                </div>
+                </p>
             </form>
         </div>
     );

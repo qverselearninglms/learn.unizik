@@ -1,27 +1,20 @@
-import React from 'react'
 import Announcements from './Announcements'
 import UpcomingEvents from './UpcomingEvents'
+import { SectionHeading } from './SectionHeading'
 
 const CalenderView = () => {
     return (
-        <section id="calender_view" className="w-full py-10 px-6 min-h-[85vh] bg-slate-100 dark:bg-gray-900 flex items-center">
-            <div className="w-full max-w-7xl mx-auto text-center">
-                <div className="text-center mb-16">
-                    <h2 className="text-3xl md:text-4xl font-bold text-gray-800 dark:text-white mb-4">
-                        Calender Events
-                    </h2>
-                    <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-                        Pick a glance at your academic schedule
-                    </p>
-                </div>
+        <section id="calender_view" className="relative bg-[var(--ivory)] py-24 sm:py-28">
+            <div className="container-page">
+                <SectionHeading
+                    eyebrow="News & calendar"
+                    title="What’s happening on campus"
+                    description="Official notices from the University and the dates you should keep an eye on this session."
+                />
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-16">
-                    <div className="lg:col-span-2">
-                        <Announcements />
-                    </div>
-                    <div>
-                        <UpcomingEvents />
-                    </div>
+                <div className="grid gap-5 lg:grid-cols-[1.6fr_1fr]">
+                    <Announcements />
+                    <UpcomingEvents />
                 </div>
             </div>
         </section>

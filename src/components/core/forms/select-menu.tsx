@@ -43,7 +43,7 @@ export const DynamicSelect: React.FC<SelectProps> = ({
         <div className={cn("space-y-2", className)}>
             {/* Label */}
             {label && (
-                <label className="text-sm font-medium leading-none text-foreground peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                <label className="block text-sm font-semibold leading-none text-foreground peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                     {label}
                     {required && <span className="text-destructive ml-1">*</span>}
                 </label>
@@ -58,10 +58,12 @@ export const DynamicSelect: React.FC<SelectProps> = ({
             >
                 <SelectTrigger
                     className={cn(
-                        'w-full bg-background text-foreground border-input',
-                        'focus:ring-2 focus:ring-primary focus:border-transparent',
-                        'placeholder:text-muted-foreground',
-                        error && 'border-destructive focus:ring-destructive'
+                        'w-full rounded-xl bg-background text-[15px] text-foreground border-input shadow-xs',
+                        size === 'default' && 'px-4 data-[size=default]:h-12',
+                        'hover:border-foreground/20',
+                        'focus-visible:border-primary focus-visible:ring-4 focus-visible:ring-primary/15',
+                        'data-[placeholder]:text-muted-foreground/70',
+                        error && 'border-destructive focus-visible:ring-destructive/15'
                     )}
                     size={size}
                 >

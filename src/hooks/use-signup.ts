@@ -66,10 +66,10 @@ export function useSignup(): UseSignupReturn {
         fn: (credentials: SignUpFormData) => authApi.signup(credentials),
         defaultOptions: {
             onSuccess: async (res: SignupResponse) => {
-                toast.success('Account Created Successfully!');
-                const redirectUrl = res.user ? res.user.email : '';
-                // router.push(`${baseUrl}/auth/signin?email=${redirectUrl}`);
-                router.push(`/gs-registration`);
+                toast.success('Account created! Sign in to continue.');
+                // New accounts sign in first; the sign-in page pre-fills the email from ?email=.
+                const email = res.user?.email ?? '';
+                router.push(email ? `/auth/signin?email=${encodeURIComponent(email)}` : '/auth/signin');
                 form.reset();
                 setCurrentStep(0);
                 setCompletedSteps([]);

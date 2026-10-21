@@ -3,12 +3,20 @@
 import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { GsStepKey } from '../types';
+import { gsConfig } from '../gs.config';
 
-const STEPS: { key: GsStepKey; label: string }[] = [
+const PAID_STEPS: { key: GsStepKey; label: string }[] = [
     { key: 'select', label: 'Choose courses' },
     { key: 'pay', label: 'Pay GS fee' },
     { key: 'receipt', label: 'Receipt' },
 ];
+
+const FREE_STEPS: { key: GsStepKey; label: string }[] = [
+    { key: 'select', label: 'Choose courses' },
+    { key: 'enroll', label: 'Start learning' },
+];
+
+const STEPS = gsConfig.skipPaymentPhase ? FREE_STEPS : PAID_STEPS;
 
 export function GsStepper({ current, completed = [] }: { current: GsStepKey; completed?: GsStepKey[] }) {
     return (

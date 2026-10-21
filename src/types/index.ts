@@ -1,3 +1,4 @@
+import type { IconSvgElement } from '@hugeicons/react';
 import { LucideIcon } from "lucide-react";
 
 export interface NavItem {
@@ -6,7 +7,7 @@ export interface NavItem {
 }
 
 export interface Feature {
-  icon: string;
+  icon: IconSvgElement;
   title: string;
   description: string;
 }
@@ -15,7 +16,7 @@ export interface Program {
   title: string;
   description: string;
   duration: string;
-  icon: LucideIcon;
+  icon: IconSvgElement;
 }
 
 export interface CampusHighlights {

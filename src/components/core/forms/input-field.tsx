@@ -2,101 +2,105 @@
 
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { Eye, EyeOff } from "lucide-react";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+import { ViewIcon, ViewOffSlashIcon } from "@hugeicons/core-free-icons";
 import React, { useId, useState } from "react";
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
     label?: string;
     error?: string;
     required?: boolean;
+    /** Optional Hugeicons icon shown inside the field on the left. */
+    icon?: IconSvgElement;
+}
+
+const fieldClass = (error?: string, withIcon?: boolean) =>
+    cn(
+        "h-12 w-full rounded-xl border border-input bg-background px-4 text-[15px] text-foreground shadow-xs",
+        "placeholder:text-muted-foreground/70",
+        "transition-[border-color,box-shadow] duration-200",
+        "hover:border-foreground/20",
+        "focus-visible:border-primary focus-visible:ring-4 focus-visible:ring-primary/15",
+        "disabled:cursor-not-allowed disabled:opacity-50",
+        withIcon && "pl-11",
+        error && "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/15",
+    );
+
+function FieldLabel({ htmlFor, label, required }: { htmlFor: string; label: string; required?: boolean }) {
+    return (
+        <label htmlFor={htmlFor} className="block text-sm font-semibold text-foreground">
+            {label} {required && <span className="text-destructive">*</span>}
+        </label>
+    );
+}
+
+function LeadingIcon({ icon }: { icon?: IconSvgElement }) {
+    if (!icon) return null;
+    return (
+        <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-muted-foreground transition-colors group-focus-within:text-primary">
+            <HugeiconsIcon icon={icon} className="size-[18px]" />
+        </span>
+    );
 }
 
 export const PasswordInputField = React.forwardRef<HTMLInputElement, InputProps>(
-    ({ className, label, error, required, id, ...props }, ref) => {
+    ({ className, label, error, required, id, icon, ...props }, ref) => {
         const [showPassword, setShowPassword] = useState(false);
         const reactId = useId();
         const inputId = id || reactId;
 
         return (
             <div className="space-y-2">
-                {label && (
-                    <label
-                        htmlFor={inputId}
-                        className="block text-sm font-medium text-foreground"
-                    >
-                        {label} {required && <span className="text-destructive">*</span>}
-                    </label>
-                )}
+                {label && <FieldLabel htmlFor={inputId} label={label} required={required} />}
 
-                <div className="relative">
+                <div className="group relative">
+                    <LeadingIcon icon={icon} />
                     <Input
                         id={inputId}
                         ref={ref}
-                        type={showPassword ? "text" : "password"}
-                        className={cn(
-                            "w-full pr-10", // leave space for icon
-                            "px-3 py-2 rounded-lg shadow-sm",
-                            "bg-background text-foreground",
-                            "border border-input",
-                            "placeholder:text-muted-foreground",
-                            "focus:outline-none focus:ring-2 focus:ring-primary",
-                            error && "border-destructive focus:ring-destructive",
-                            className
-                        )}
+                        aria-invalid={Boolean(error) || undefined}
+                        className={cn(fieldClass(error, Boolean(icon)), "pr-12", className)}
                         {...props}
+                        type={showPassword ? "text" : "password"}
                     />
 
                     <button
                         type="button"
-                        className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
+                        aria-label={showPassword ? "Hide password" : "Show password"}
+                        className="absolute inset-y-0 right-2 my-auto grid size-9 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                         onClick={() => setShowPassword((v) => !v)}
                     >
-                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                        <HugeiconsIcon icon={showPassword ? ViewOffSlashIcon : ViewIcon} className="size-[18px]" />
                     </button>
                 </div>
 
-                {error && (
-                    <p className="text-sm text-destructive">{error}</p>
-                )}
+                {error && <p className="text-sm text-destructive">{error}</p>}
             </div>
         );
     }
 );
 
+PasswordInputField.displayName = 'PasswordInputField';
+
 export const InputField = React.forwardRef<HTMLInputElement, InputProps>(
-    ({ className, label, error, required, id, ...props }, ref) => {
+    ({ className, label, error, required, id, icon, ...props }, ref) => {
         const reactId = useId();
         const inputId = id || reactId;
 
         return (
             <div className="space-y-2">
-                {label && (
-                    <label
-                        htmlFor={inputId}
-                        className="block text-sm font-medium text-foreground"
-                    >
-                        {label} {required && <span className="text-destructive">*</span>}
-                    </label>
-                )}
-                <Input
-                    id={inputId}
-                    ref={ref}
-                    className={cn(
-                        'w-full px-3 py-2 rounded-lg shadow-sm',
-                        'bg-background text-foreground',
-                        'border border-input',
-                        'placeholder:text-muted-foreground',
-                        'focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
-                        'transition-all duration-200',
-                        'disabled:opacity-50 disabled:cursor-not-allowed',
-                        error && 'border-destructive focus:ring-destructive',
-                        className
-                    )}
-                    {...props}
-                />
-                {error && (
-                    <p className="text-sm text-destructive">{error}</p>
-                )}
+                {label && <FieldLabel htmlFor={inputId} label={label} required={required} />}
+                <div className="group relative">
+                    <LeadingIcon icon={icon} />
+                    <Input
+                        id={inputId}
+                        ref={ref}
+                        aria-invalid={Boolean(error) || undefined}
+                        className={cn(fieldClass(error, Boolean(icon)), className)}
+                        {...props}
+                    />
+                </div>
+                {error && <p className="text-sm text-destructive">{error}</p>}
             </div>
         );
     }

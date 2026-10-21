@@ -4,7 +4,7 @@ import React from 'react'
 import { VerifyToken } from './verifyToken';
 import { ResetPasswordForm } from './resetPasswordForm';
 import { AuthContainerHeader } from '../../components/AuthContainerHeader';
-import { Fingerprint } from 'lucide-react';
+import { FingerPrintIcon } from '@hugeicons/core-free-icons';
 
 export const StateResolver = () => {
     return (
@@ -19,7 +19,7 @@ export const StateResolver = () => {
                 <AuthContainerHeader
                     heading='Reset your password'
                     subHeading='Enter your new password below.'
-                    Icon={Fingerprint}
+                    Icon={FingerPrintIcon}
                 />
                 <ResetPasswordForm />
             </div>

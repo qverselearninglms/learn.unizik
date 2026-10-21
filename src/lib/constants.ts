@@ -1,30 +1,30 @@
 import { NavItem, Feature, Program, Stat, FooterSection, CampusHighlights } from "../types";
+import { Atom01Icon, Book01Icon, Briefcase01Icon, ComputerProgramming01Icon, EarthIcon, LaptopIcon, MicroscopeIcon, MortarboardIcon, Clock01Icon } from "@hugeicons/core-free-icons";
 
 export const NAV_ITEMS: NavItem[] = [
     { href: '#home', label: 'Home' },
-    { href: '#features', label: 'features' },
-    { href: '#programs', label: 'Programs' },
+    { href: '#services', label: 'Services' },
+    { href: '#features', label: 'Why UNIZIK' },
+    { href: '#programs', label: 'Programmes' },
     { href: '#calender_view', label: 'Updates' },
-    { href: '#campus_highlight', label: 'Highlights' },
-    // { href: '#about', label: 'About' },
-    // { href: '#contact', label: 'Contact' },
+    { href: '#campus_highlight', label: 'Campus' },
 ];
 
 export const FEATURES: Feature[] = [
     {
-        icon: '🎓',
-        title: 'World-Class Faculty',
-        description: 'Learn from distinguished professors and industry experts who bring real-world experience to the classroom.',
+        icon: MortarboardIcon,
+        title: 'Taught by UNIZIK faculty',
+        description: 'Every course is designed and delivered by the same lecturers who teach on campus, with the same standards.',
     },
     {
-        icon: '💼',
-        title: 'Industry Connections',
-        description: 'Access our extensive network of corporate partners and alumni for internships, mentorship, and career opportunities.',
+        icon: LaptopIcon,
+        title: 'Learn from anywhere',
+        description: 'Lectures, materials and assessments live in one virtual classroom that works on your phone or laptop.',
     },
     {
-        icon: '🌍',
-        title: 'Global Perspective',
-        description: 'Gain international exposure through exchange programs, global case studies, and multicultural learning environments.',
+        icon: Clock01Icon,
+        title: 'Register in minutes',
+        description: 'Choose your General Studies courses online and go straight to your classes, no queues or paperwork.',
     },
 ];
 
@@ -32,37 +32,37 @@ export const PROGRAMS: Program[] = [
     {
         title: "Computer Science",
         description: "Explore cutting-edge technology and software development",
-        icon: Code,
+        icon: ComputerProgramming01Icon,
         duration: '2 Years',
     },
     {
         title: "Business Administration",
         description: "Develop leadership skills for the modern business world",
-        icon: Briefcase,
+        icon: Briefcase01Icon,
         duration: '4 Years',
     },
     {
         title: "Biology",
         description: "Discover the science of life through innovative research",
-        icon: Microscope,
+        icon: MicroscopeIcon,
         duration: '4 Years',
     },
     {
         title: "Literature",
         description: "Analyze great works and develop critical thinking skills",
-        icon: Book,
+        icon: Book01Icon,
         duration: '4 Years',
     },
     {
         title: "Physics",
         description: "Understand the fundamental laws that govern our universe",
-        icon: Atom,
+        icon: Atom01Icon,
         duration: '4 Years',
     },
     {
         title: "International Relations",
         description: "Study global politics and cross-cultural communication",
-        icon: Globe,
+        icon: EarthIcon,
         duration: '4 Years',
     },
 ];
@@ -97,21 +97,21 @@ export const FOOTER_SECTIONS: FooterSection[] = [
     {
         title: 'Quick Links',
         links: [
-            { label: 'Programs', href: '#programs' },
-            { label: 'Admissions', href: '#admissions' },
-            { label: 'Research', href: '#research' },
-            { label: 'Faculty', href: '#faculty' },
-            { label: 'Careers', href: '#careers' },
+            { label: 'Programmes', href: '/#programs' },
+            { label: 'Course enrollment', href: '/enrollment' },
+            { label: 'GS registration', href: '/gs-registration' },
+            { label: 'Announcements', href: '/#calender_view' },
+            { label: 'Campus', href: '/#campus_highlight' },
         ],
     },
     {
         title: 'Student Resources',
         links: [
-            { label: 'Student Portal', href: '/auth/signin' },
-            { label: 'Library', href: '#library' },
-            { label: 'Academic Calendar', href: '#calendar' },
-            { label: 'Student Services', href: '#services' },
-            { label: 'Alumni Network', href: '#alumni' },
+            { label: 'Student portal', href: '/auth/signin' },
+            { label: 'Create an account', href: '/auth/create-account' },
+            { label: 'Reset password', href: '/auth/forgot-password' },
+            { label: 'My courses', href: '/enrollment' },
+            { label: 'Main university site', href: 'https://unizik.edu.ng' },
         ],
     },
 ];

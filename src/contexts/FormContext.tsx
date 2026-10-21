@@ -7,6 +7,7 @@ import { signInFormData, signInSchema } from '@/schema/auth-schema'
 import { useAuthContext } from '@/providers/AuthProvider'
 import { useSearchParams } from 'next/navigation'
 import { useEffect } from 'react'
+import { gsConfig } from '@/modules/gs-registration/gs.config';
 
 interface FormContextType {
     form: UseFormReturn<signInFormData>;
@@ -23,7 +24,7 @@ export const FormProvider: React.FC<{
     children: React.ReactNode
 }> = ({ children }) => {
     const searchParams = useSearchParams()
-    const callbackUrl = searchParams.get("callbackUrl") || "/enrollment";
+    const callbackUrl = searchParams.get("callbackUrl") || gsConfig.routes.base;
     const referenceNumber = searchParams.get('email') || ''
     const { login, requestParentOTP, isLoggingIn, parentOTP, removeparentOTP } = useAuthContext()
 

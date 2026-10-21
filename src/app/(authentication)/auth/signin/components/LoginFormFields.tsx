@@ -6,6 +6,8 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { useLoginFormContext } from '@/contexts/FormContext';
 import { signInFormData } from '@/schema/auth-schema';
 import Link from 'next/link';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { UserAdd01Icon } from '@hugeicons/core-free-icons';
 import React from 'react'
 import { UseFormRegister } from 'react-hook-form';
 
@@ -85,18 +87,18 @@ export const FormActions = ({ register }: FormActionsProps) => (
                 {...register("rememberMe")}
                 id="remember"
                 type="checkbox"
-                className="w-4 h-4 text-blue-600 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-all duration-300 group-hover:border-blue-500 dark:group-hover:border-blue-400"
+                className="size-4 rounded accent-[var(--primary)]"
             />
             <label
                 htmlFor="remember"
-                className="ml-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer transition-colors duration-300 group-hover:text-gray-900 dark:group-hover:text-white"
+                className="ml-2 cursor-pointer text-sm text-muted-foreground transition-colors group-hover:text-foreground"
             >
                 Remember me
             </label>
         </div>
         <Link
             href="/auth/forgot-password"
-            className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium transition-all duration-300 cursor-pointer hover:underline underline-offset-2"
+            className="text-sm font-medium text-primary underline-offset-4 hover:underline dark:text-[oklch(0.8_0.08_250)]"
         >
             Forgot password?
         </Link>
@@ -105,16 +107,18 @@ export const FormActions = ({ register }: FormActionsProps) => (
 
 // Apply section component
 export const ApplySection = () => (
-    <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700 text-center animate-in fade-in-50 delay-700 transition-colors duration-300">
-        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 transition-colors duration-300">
-            New to our platform?
-        </p>
+    <div className="mt-8 animate-in fade-in-50 delay-700">
+        <div className="relative my-6 flex items-center">
+            <span className="h-px flex-1 bg-border" />
+            <span className="px-3 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">New here?</span>
+            <span className="h-px flex-1 bg-border" />
+        </div>
         <Link
             href="/auth/create-account"
-            className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-semibold text-sm transition-all duration-300 cursor-pointer hover:underline underline-offset-4 group"
+            className="group flex h-12 w-full items-center justify-center gap-2 rounded-full border border-input text-sm font-semibold text-foreground transition-colors hover:border-accent/40 hover:bg-accent/5"
         >
-            Sign Up!
-            <span className="ml-1 group-hover:translate-x-1 transition-transform duration-300">→</span>
+            <HugeiconsIcon icon={UserAdd01Icon} className="size-[18px] text-accent" />
+            Create a student account
         </Link>
     </div>
 );

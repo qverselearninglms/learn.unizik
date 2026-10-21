@@ -2,7 +2,7 @@
 
 import { InputField, PasswordInputField } from '@/components/core/forms/input-field'
 import { SignUpFormData } from '@/schema/sign-up-schema';
-import { Eye, EyeOff } from 'lucide-react';
+import { AtIcon, LockPasswordIcon, Mail01Icon } from '@hugeicons/core-free-icons';
 import React, { useState } from 'react'
 import { GenericHookFormProps } from '@/types/forms';
 
@@ -20,6 +20,8 @@ export const AccountInformation: React.FC<AccountInformationProps> = ({ register
                     {...register('email')}
                     type="email"
                     label="Email Address"
+                    icon={Mail01Icon}
+                    autoComplete="email"
                     placeholder="Enter your university email"
                     error={errors.email?.message}
                     required
@@ -29,6 +31,8 @@ export const AccountInformation: React.FC<AccountInformationProps> = ({ register
                     id='username'
                     {...register('username')}
                     label="Username"
+                    icon={AtIcon}
+                    autoComplete="username"
                     placeholder="Enter your username"
                     error={errors.username?.message}
                     required
@@ -59,6 +63,8 @@ export const AccountInformation: React.FC<AccountInformationProps> = ({ register
                     {...register('password')}
                     type={showPassword ? 'text' : 'password'}
                     label="Password"
+                    icon={LockPasswordIcon}
+                    autoComplete="new-password"
                     placeholder="Create a password"
                     error={errors.password?.message}
                     required
@@ -68,6 +74,8 @@ export const AccountInformation: React.FC<AccountInformationProps> = ({ register
                     {...register('confirm_password')}
                     type={showConfirmPassword ? 'text' : 'password'}
                     label="Confirm Password"
+                    icon={LockPasswordIcon}
+                    autoComplete="new-password"
                     placeholder="Confirm your password"
                     error={errors.confirm_password?.message}
                     required

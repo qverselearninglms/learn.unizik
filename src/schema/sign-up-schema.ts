@@ -8,13 +8,21 @@ export const personalInfoSchema = z.object({
     other_name: nameSchema('Other name', true),
     gender: genderSchema,
     nationality: selectMenuSchema('country'),
-    state: selectMenuSchema('state', true),
-    local_gov_area: selectMenuSchema('local_gov_area', true),
+    // Required by POST /auth/register.
+    state: selectMenuSchema('state'),
+    local_gov_area: selectMenuSchema('local government area'),
     phone: phoneSchema(),
 });
 
+/** Undergraduate levels offered at sign-up. */
+export const LEVEL_OPTIONS = [100, 200, 300, 400, 500] as const;
+
 export const academicInfoSchema = z.object({
-    department: nameSchema('Department'),
+    // Submitted as an integer (100, 200, ...); the Level select converts its string value with Number().
+    level: z
+        .number({ error: 'Please select your level' })
+        .int()
+        .refine((v) => (LEVEL_OPTIONS as readonly number[]).includes(v), 'Please select your level'),
     school_reg_number: regNumberSchema('School Registration Number'),
     // reg_number: regNumberSchema('School Registration Number'),
     // jamb_reg_number: regNumberSchema('Jamb Registration Number', true),
@@ -25,7 +33,6 @@ export const academicInfoSchema = z.object({
 export const programChoiceSchema = z.object({
     program_id: idNumberSchema('Program ID', true, 'number'),
     program: z.string().optional(), // This will be populated on the client side based on the selected 
-    level: idNumberSchema('Level', true, 'number'),
 });
 
 

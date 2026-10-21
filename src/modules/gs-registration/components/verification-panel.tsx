@@ -19,6 +19,8 @@ interface Props {
     attempts: number;
     maxAttempts: number;
     message?: string;
+    /** Backend reason when the verify request itself failed (e.g. a 422). */
+    errorMessage?: string;
 
     countdown: { remaining: number; running: boolean; cancelled: boolean; cancel: () => void };
     onContinue: () => void;
@@ -159,7 +161,7 @@ export function VerificationPanel(p: Props) {
                     <p className="mt-1 max-w-sm text-sm text-muted-foreground">
                         {p.state === 'timeout'
                             ? "Banks sometimes take a few minutes to confirm. Your payment isn't lost — don't pay again."
-                            : 'This is usually a connection problem. Your payment is not affected.'}
+                            : (p.errorMessage ?? 'This is usually a connection problem. Your payment is not affected.')}
                     </p>
                     <Button className="mt-5" onClick={p.onCheckAgain}>
                         <RefreshCw aria-hidden /> Check again

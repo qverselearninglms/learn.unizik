@@ -10,11 +10,13 @@ import { MockBanner } from '../components/mock-banner';
 import { ReceiptDocument } from '../components/receipt-document';
 import { FullPageMessage, InlineError, PageSkeleton } from '../components/states';
 import { gsConfig } from '../gs.config';
+import { SkipToEnrollment } from '../components/skip-redirect';
 import { useGsPaymentStatus } from '../hooks/use-gs-payment-status';
 import { useGsReceipt } from '../hooks/use-gs-receipt';
 import { useReceiptPdf } from '../hooks/use-receipt-pdf';
 
 export function ReceiptView() {
+    if (gsConfig.skipPaymentPhase) return <SkipToEnrollment />;
     return (
         <GsAccessGuard>
             <ReceiptContent />

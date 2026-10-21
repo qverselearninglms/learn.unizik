@@ -1,5 +1,6 @@
-import { Check } from 'lucide-react';
 import React, { FC } from 'react'
+import { HugeiconsIcon, type IconSvgElement } from '@hugeicons/react';
+import { Tick02Icon } from '@hugeicons/core-free-icons';
 import { cn } from '@/lib/utils';
 
 interface ProgressStepperProps {
@@ -7,7 +8,7 @@ interface ProgressStepperProps {
         id: string;
         title: string;
         description: string;
-        icon: React.ComponentType<{ className?: string }>;
+        icon: IconSvgElement;
     }[];
     getStepStatus: (stepIndex: number) => "completed" | "current" | "upcoming";
     goToStep: (stepIndex: number) => Promise<void>;
@@ -15,56 +16,52 @@ interface ProgressStepperProps {
 }
 
 export const ProgressStepper: FC<ProgressStepperProps> = ({ steps, getStepStatus, goToStep, currentStep }) => {
-    return (
-        <div className="mb-8">
-            <div className="flex items-center justify-between">
-                {steps.map((step, index) => {
-                    const status = getStepStatus(index);
-                    const Icon = step.icon;
+    const progress = steps.length > 1 ? (currentStep / (steps.length - 1)) * 100 : 0;
 
-                    return (
-                        <React.Fragment key={step.id}>
-                            <div className="flex flex-col items-center flex-1">
+    return (
+        <nav aria-label="Sign-up progress" className="mb-8">
+            <div className="relative">
+                {/* Track */}
+                <div aria-hidden className="absolute left-5 right-5 top-5 h-0.5 rounded-full bg-border" />
+                <div
+                    aria-hidden
+                    className="absolute left-5 top-5 h-0.5 rounded-full bg-gradient-to-r from-[#f26a1b] to-[#1f5fd1] transition-[width] duration-500"
+                    style={{ width: `calc((100% - 2.5rem) * ${progress / 100})` }}
+                />
+
+                <ol className="relative flex justify-between">
+                    {steps.map((step, index) => {
+                        const status = getStepStatus(index);
+                        return (
+                            <li key={step.id} className="flex flex-col items-center text-center">
                                 <button
+                                    type="button"
                                     onClick={() => goToStep(index)}
+                                    aria-current={status === 'current' ? 'step' : undefined}
+                                    aria-label={`${step.title}${status === 'completed' ? ' (completed)' : ''}`}
                                     className={cn(
-                                        'w-12 h-12 rounded-full border-2 flex items-center justify-center mb-2 transition-all duration-200',
-                                        status === 'completed' && 'bg-green-500 border-green-500 text-white',
-                                        status === 'current' && 'bg-primary border-primary text-primary-foreground',
-                                        status === 'upcoming' && 'bg-background border-input text-muted-foreground hover:border-primary/50 hover:text-foreground'
+                                        'grid size-10 place-items-center rounded-full border-2 bg-background transition-all duration-300',
+                                        status === 'completed' && 'border-transparent bg-gradient-to-br from-[#f26a1b] to-[#1f5fd1] text-white',
+                                        status === 'current' && 'border-primary text-primary shadow-[0_0_0_6px] shadow-primary/10',
+                                        status === 'upcoming' && 'border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground',
                                     )}
                                 >
-                                    {status === 'completed' ? (
-                                        <Check className="w-6 h-6" />
-                                    ) : (
-                                        <Icon className="w-6 h-6" />
-                                    )}
+                                    <HugeiconsIcon icon={status === 'completed' ? Tick02Icon : step.icon} className="size-[18px]" />
                                 </button>
-                                <div className="text-center">
-                                    <p className={cn(
-                                        'text-sm font-medium',
-                                        status === 'current' && 'text-primary',
-                                        status === 'completed' && 'text-green-600 dark:text-green-400',
-                                        status === 'upcoming' && 'text-muted-foreground'
-                                    )}>
-                                        {step.title}
-                                    </p>
-                                    <p className="text-xs text-muted-foreground">
-                                        {step.description}
-                                    </p>
-                                </div>
-                            </div>
-
-                            {index < steps.length - 1 && (
-                                <div className={cn(
-                                    'flex-1 h-0.5 mx-4 transition-colors duration-200',
-                                    index < currentStep ? 'bg-green-500' : 'bg-border'
-                                )} />
-                            )}
-                        </React.Fragment>
-                    );
-                })}
+                                <span
+                                    className={cn(
+                                        'mt-2.5 text-xs font-semibold sm:text-sm',
+                                        status === 'upcoming' ? 'text-muted-foreground' : 'text-foreground',
+                                    )}
+                                >
+                                    {step.title}
+                                </span>
+                                <span className="hidden text-xs text-muted-foreground sm:block">{step.description}</span>
+                            </li>
+                        );
+                    })}
+                </ol>
             </div>
-        </div>
+        </nav>
     )
 }

@@ -69,17 +69,17 @@ export const gsMock = {
         return envelope({ ...SEMESTER, min_units: 4, max_units: 10, fee: FEE, courses: COURSES });
     },
 
-    async initiate(body: { course_ids: string[] }) {
+    async initiate(body: { course_ids: (string | number)[] }) {
         await sleep(700);
-        const valid = body.course_ids.every((id) => COURSES.some((c) => String(c.id) === id));
+        const valid = body.course_ids.every((id) => COURSES.some((c) => String(c.id) === String(id)));
         if (!valid) throw new GsApiError('One or more selected courses are not offered this semester.', 422);
         const s = read();
         if (s.paid) throw new GsApiError('Your GS fee has already been paid.', 409);
         const reference = `GSMOCK-${Date.now().toString(36).toUpperCase()}`;
-        write({ ...s, reference, courseIds: body.course_ids, calls: { ...s.calls, [reference]: 0 } });
+        write({ ...s, reference, courseIds: body.course_ids.map(String), calls: { ...s.calls, [reference]: 0 } });
         return envelope({
             reference,
-            authorization_url: `${window.location.origin}${gsConfig.routes.pay}?reference=${reference}&transRef=MOCK-TRX&status=0`,
+            authorization_url: `${window.location.origin}${gsConfig.routes.pay}?transRef=${reference}&reference=MOCK-BIZ-REF&status=0`,
             amount: FEE.amount,
             service_charge: FEE.service_charge,
             total: FEE.amount + FEE.service_charge,
@@ -131,11 +131,11 @@ export const gsMock = {
         });
     },
 
-    async submit(body: { course_ids: string[] }) {
+    async submit(body: { course_ids: (string | number)[] }) {
         await sleep(800);
         const s = read();
         if (!s.paid) throw new GsApiError('Pay the GS fee before submitting your course registration.', 403);
-        write({ ...s, submitted: true, courseIds: body.course_ids });
+        write({ ...s, submitted: true, courseIds: body.course_ids.map(String) });
         return envelope({ message: 'Course registration submitted.' });
     },
 };

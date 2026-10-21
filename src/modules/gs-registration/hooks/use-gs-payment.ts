@@ -44,7 +44,11 @@ export function useVerifyGsPayment(reference: string | null) {
         queryKey,
         queryFn: () => gsApi.verifyPayment(reference as string),
         enabled: Boolean(reference),
-        retry: 2,
+        // 4xx (e.g. 422 unknown reference) won't fix itself on retry; only retry network/5xx errors.
+        retry: (count, err) => {
+            const code = (err as { statusCode?: number }).statusCode ?? 0;
+            return !(code >= 400 && code < 500) && count < 2;
+        },
         retryDelay: 1500,
         staleTime: 0,
         gcTime: 0,

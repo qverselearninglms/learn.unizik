@@ -39,9 +39,14 @@ async function run<T>(request: () => Promise<unknown>, schema: ZodType<T>, what:
     }
 }
 
+const optionalText = z.string().nullish().transform((v) => v ?? undefined);
+/** "Complete enrollment" response: only a message and (optionally) the LMS single-sign-on link matter. */
 const gsPassthroughMessage = z
-    .object({ message: z.string().nullish().transform((v) => v ?? undefined) })
-    .catch({ message: undefined });
+    .object({ message: optionalText, ssoLink: optionalText })
+    .catch({ message: undefined, ssoLink: undefined });
+
+/** The backend's course ids are integers; we hold them as strings. */
+const toWireIds = (ids: string[]) => ids.map((id) => (/^\d+$/.test(id) ? Number(id) : id));
 
 const mock = () => import('./mock-adapter').then((m) => m.gsMock);
 
@@ -54,7 +59,10 @@ export const gsApi = {
     /** Gate: has this student's GS fee been verified (via gateway webhook) by the backend? */
     getPaymentStatus(): Promise<GsPaymentStatus> {
         return run(
-            async () => (gsConfig.useMock ? (await mock()).getStatus() : gsHttp.get(endpoints.status)),
+            async () =>
+                gsConfig.useMock
+                    ? (await mock()).getStatus()
+                    : gsHttp.get(endpoints.status, { params: { session: gsConfig.defaults.session } }),
             gsPaymentStatusSchema,
             'payment status',
         );
@@ -71,7 +79,7 @@ export const gsApi = {
     async initiatePayment(input: GsInitiatePayload): Promise<GsInitiateResponse> {
         const payload = gsInitiatePayloadSchema.parse(input);
         const body = {
-            course_ids: payload.courseIds,
+            course_ids: toWireIds(payload.courseIds),
             semester: payload.semester,
             session: payload.session,
             // Lets the backend point the gateway's return URL back at this portal.
@@ -94,24 +102,28 @@ export const gsApi = {
             async () =>
                 gsConfig.useMock
                     ? (await mock()).verify(reference)
-                    : gsHttp.get(endpoints.verify, { params: { reference } }),
+                    : gsHttp.get(endpoints.verify, { params: { transRef: reference } }),
             gsVerifyResponseSchema,
             'payment verification',
         );
     },
 
-    getReceipt(): Promise<GsReceipt> {
+    /** `reference` is the payment reference from the status gate (the backend requires it). */
+    getReceipt(reference: string): Promise<GsReceipt> {
         return run(
-            async () => (gsConfig.useMock ? (await mock()).receipt() : gsHttp.get(endpoints.receipt)),
+            async () =>
+                gsConfig.useMock
+                    ? (await mock()).receipt()
+                    : gsHttp.get(endpoints.receipt, { params: { reference } }),
             gsReceiptSchema,
             'receipt',
         ).then((r) => ({ ...r, total: r.total ?? r.amount + r.serviceCharge }));
     },
 
     /** Final "Submit Course Registration". The backend must itself refuse if the fee is unpaid. */
-    submitRegistration(input: GsSubmitRegistrationPayload): Promise<{ message?: string }> {
+    submitRegistration(input: GsSubmitRegistrationPayload): Promise<{ message?: string; ssoLink?: string }> {
         const payload = gsSubmitRegistrationPayloadSchema.parse(input);
-        const body = { course_ids: payload.courseIds, semester: payload.semester, session: payload.session };
+        const body = { course_ids: toWireIds(payload.courseIds), semester: payload.semester, session: payload.session };
         return run(
             async () => (gsConfig.useMock ? (await mock()).submit(body) : gsHttp.post(endpoints.register, body)),
             // Only the message matters; accept any object.

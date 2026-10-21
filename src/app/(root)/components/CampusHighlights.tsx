@@ -1,42 +1,53 @@
-import { CAMPUSHIGHLIGHTS } from "@/lib/constants";
 import Image from "next/image";
-import Link from "next/link";
+import { CAMPUSHIGHLIGHTS } from "@/lib/constants";
+import { cn } from "@/lib/utils";
+import { SectionHeading } from "./SectionHeading";
+
+// Editorial mosaic: the first image is the large tile.
+const TILE = [
+    "sm:col-span-2 sm:row-span-2 min-h-[320px]",
+    "sm:col-span-2 min-h-[220px]",
+    "min-h-[220px]",
+    "min-h-[220px]",
+];
 
 export default function CampusHighlights() {
     return (
-        <section id="campus_highlight" className="w-full py-16 px-6 min-h-[85vh] flex items-center bg-white dark:bg-gray-800">
-            <div className="w-full max-w-7xl mx-auto text-center">
-                <div className="text-center mb-12">
-                    <h2 className="text-3xl font-bold text-[#23608c] dark:text-blue-400 mb-4">Campus Highlights</h2>
-                    <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-                        Experience what makes our university special through our state-of-the-art facilities and vibrant community.
-                    </p>
-                </div>
+        <section id="campus_highlight" className="relative bg-background py-24 sm:py-28">
+            <div className="container-page">
+                <SectionHeading
+                    eyebrow="Life at UNIZIK"
+                    title="A campus worth coming back to"
+                    description="Online or on site, you are part of a vibrant community with world-class facilities in Awka."
+                />
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <ul className="grid auto-rows-[minmax(220px,auto)] gap-4 sm:grid-cols-4">
                     {CAMPUSHIGHLIGHTS.map((ch, index) => (
-                        <div key={index} className="group relative overflow-hidden rounded-lg h-64 w-auto">
+                        <li key={ch.title} className={cn("group relative overflow-hidden rounded-3xl bg-muted", TILE[index % TILE.length])}>
                             <Image
                                 src={ch.imageUrl}
                                 fill
                                 alt={ch.title}
-                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                                sizes={index === 0 ? "(min-width: 640px) 50vw, 100vw" : "(min-width: 640px) 25vw, 100vw"}
+                                className="object-cover transition-transform duration-700 group-hover:scale-105"
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 dark:from-black/70 to-transparent flex items-end p-4">
-                                <h3 className="text-white font-bold text-lg">{ch.title}</h3>
+                            <div className="absolute inset-0 bg-gradient-to-t from-[var(--navy-950)]/85 via-[var(--navy-950)]/10 to-transparent" />
+                            <div className="absolute inset-x-0 bottom-0 p-5 sm:p-6">
+                                <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/60">
+                                    0{index + 1}
+                                </span>
+                                <h3
+                                    className={cn(
+                                        "font-display mt-1 font-semibold text-balance text-white",
+                                        index === 0 ? "text-2xl sm:text-3xl" : "text-lg",
+                                    )}
+                                >
+                                    {ch.title}
+                                </h3>
                             </div>
-                        </div>
+                        </li>
                     ))}
-                </div>
-
-                <div className="mt-8 text-center">
-                    <Link
-                        href="#"
-                        className="inline-flex items-center justify-center bg-[#d25400] dark:bg-orange-600 hover:bg-[#b34800] dark:hover:bg-orange-700 text-white font-medium py-3 px-6 rounded-md transition-colors"
-                    >
-                        Take a Virtual Tour
-                    </Link>
-                </div>
+                </ul>
             </div>
         </section>
     );

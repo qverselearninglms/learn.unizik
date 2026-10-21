@@ -1,150 +1,178 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useTheme } from 'next-themes';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { ArrowRight01Icon, Logout03Icon, Menu01Icon, Moon02Icon, Sun03Icon } from '@hugeicons/core-free-icons';
 import { NAV_ITEMS } from '@/lib/constants';
 import { useAuthContext } from '@/providers/AuthProvider';
 import { Button } from '@/components/ui/button';
-import { LogOut, User } from 'lucide-react';
-import Link from 'next/link';
-import { ModeToggle } from '../ui/mood-toggle';
-import { usePathname } from 'next/navigation';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Logo } from '@/components/layout/Logo';
 import { cn } from '@/lib/utils';
+import { usePortalHome } from '@/hooks/use-portal-home';
 
-export const Navigation = () => {
+interface NavigationProps {
+    /** Header is transparent over the navy hero: use light text. */
+    onDark?: boolean;
+}
+
+function ThemeToggle({ onDark }: NavigationProps) {
+    const { resolvedTheme, setTheme } = useTheme();
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => setMounted(true), []);
+    const isDark = mounted && resolvedTheme === 'dark';
+
+    return (
+        <button
+            type="button"
+            onClick={() => setTheme(isDark ? 'light' : 'dark')}
+            aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+            className={cn(
+                'grid size-9 place-items-center rounded-full border transition-colors',
+                onDark
+                    ? 'border-white/15 text-white/80 hover:bg-white/10 hover:text-white'
+                    : 'border-[var(--hairline)] text-muted-foreground hover:bg-muted hover:text-foreground',
+            )}
+        >
+            {isDark ? <HugeiconsIcon icon={Sun03Icon} className="size-4" /> : <HugeiconsIcon icon={Moon02Icon} className="size-4" />}
+        </button>
+    );
+}
+
+export const Navigation = ({ onDark = false }: NavigationProps) => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const { user, logout, isLoggingOut } = useAuthContext();
     const pathname = usePathname();
-    const role = user?.role.toLocaleLowerCase();
-    const isHomepage = pathname === '/'
-    const isOnEnrollmentPage = pathname === '/enrollment'
+    const isHomepage = pathname === '/';
+    const isOnEnrollmentPage = pathname === '/enrollment';
+    const portal = usePortalHome();
+    const showPortalButton = portal && pathname !== portal.href;
 
     const handleNavClick = (href: string) => {
-        const element = document.querySelector(href);
-        if (element) {
-            element.scrollIntoView({ behavior: 'smooth' });
-        }
+        document.querySelector(href)?.scrollIntoView({ behavior: 'smooth' });
         setIsMobileMenuOpen(false);
     };
 
-    const handleLogout = () => { logout(); };
-
-    const navLinkClasses = "text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors duration-200 relative group cursor-pointer bg-transparent border-none";
+    const linkClass = cn(
+        'relative rounded-full px-3 py-2 text-sm font-medium transition-colors',
+        onDark ? 'text-white/75 hover:text-white' : 'text-muted-foreground hover:text-foreground',
+    );
 
     return (
         <>
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center gap-4">
-                {NAV_ITEMS.map((item) => (
-                    <button
-                        key={item.href}
-                        onClick={() => handleNavClick(item.href)}
-                        className={cn(navLinkClasses, !isHomepage ? " hidden" : "")}
-                    >
-                        {item.label}
-                        <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 dark:bg-blue-400 transition-all duration-200 group-hover:w-full" />
-                    </button>
-                ))}
-                {user ? (
-                    <>
-                        <div className={`${isOnEnrollmentPage ? "hidden" : "hidden md:block "}`}>
-                            <Link href={`/enrollment`} className={cn(navLinkClasses, "")}>
-                                Enroll In Courses
-                                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 dark:bg-blue-400 transition-all duration-200 group-hover:w-full" />
-                            </Link>
-                        </div>
-                        {/* <div className={`${isHomepage ? "hidden" : "hidden md:block "}`}>
-                            <Link href={`/${role}/profile`} className='flex gap-3 items-center'>
-                                <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                                    <User className="w-4 h-4 text-gray-600 dark:text-gray-300" />
-                                </div>
-                                <span className="text-sm font-medium text-gray-700 dark:text-gray-200">{user.first_name}</span>
-                                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 dark:bg-blue-400 transition-all duration-200 group-hover:w-full" />
-                            </Link>
-                        </div> */}
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={handleLogout}
-                            loading={isLoggingOut}
-                            className="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
-                        >
-                            <LogOut className="w-4 h-4" />
-                            <span className="hidden sm:inline ml-1">Sign Out</span>
-                        </Button>
-                    </>
-                ) : (
-                    <Button
-                        size='sm'
-                        // onClick={onLoginClick}
-                        asChild
-                    >
-                        <Link href={`/auth/signin`}>
-                            Sign In
-                        </Link>
-                    </Button>
-                )}
-                <ModeToggle />
-            </nav>
-
-            {/* Mobile Menu Button */}
-            <button
-                className="md:hidden text-gray-600 dark:text-gray-300 text-2xl cursor-pointer bg-transparent border-none"
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            >
-                ☰
-            </button>
-
-            {/* Mobile Navigation */}
-            {isMobileMenuOpen && (
-                <nav className="absolute top-full left-0 right-0 bg-white dark:bg-gray-900 shadow-lg dark:shadow-gray-800/50 p-5 flex flex-col gap-4 md:hidden">
-                    {NAV_ITEMS.map((item) => (
-                        <button
-                            key={item.href}
-                            onClick={() => handleNavClick(item.href)}
-                            className={`text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors duration-200 text-left cursor-pointer bg-transparent border-none ${!isHomepage ? " hidden" : ""}`}
-                        >
+            {/* Desktop */}
+            <nav className="hidden items-center gap-1 lg:flex" aria-label="Main">
+                {isHomepage &&
+                    NAV_ITEMS.map((item) => (
+                        <button key={item.href} type="button" onClick={() => handleNavClick(item.href)} className={linkClass}>
                             {item.label}
                         </button>
                     ))}
-                    {user ? (
-                        <>
-                            <div className="block">
-                                <Link href={`/enrollment`} className='flex gap-3 items-center'>
-                                    <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Enroll In Courses</span>
-                                </Link>
-                            </div>
-                            {/* <div className="block">
-                                <Link href={`/${role}/profile`} className='flex gap-3 items-center'>
-                                    <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                                        <User className="w-4 h-4 text-gray-600 dark:text-gray-300" />
-                                    </div>
-                                    <span className="text-sm font-medium text-gray-700 dark:text-gray-200">{user.first_name}</span>
-                                </Link>
-                            </div> */}
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={handleLogout}
-                                loading={isLoggingOut}
-                                className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 border-gray-300 dark:border-gray-600"
-                            >
-                                <LogOut className="w-4 h-4" />
-                                <span className="inline ml-1">Sign Out</span>
-                            </Button>
-                        </>
-                    ) : (
-                        <Button
-                            size='sm'
-                            className='mt-2'
-                            asChild
+                {user && !isOnEnrollmentPage && (
+                    <Link href="/enrollment" className={linkClass}>
+                        Enroll In Courses
+                    </Link>
+                )}
+            </nav>
+
+            <div className="flex items-center gap-2">
+                <ThemeToggle onDark={onDark} />
+
+                {showPortalButton && (
+                    <Button asChild size="sm" variant="brand" className="hidden h-9 rounded-full px-4 sm:inline-flex">
+                        <Link href={portal.href}>
+                            {portal.label} <HugeiconsIcon icon={ArrowRight01Icon} className="size-4" />
+                        </Link>
+                    </Button>
+                )}
+
+                {user ? (
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => logout()}
+                        loading={isLoggingOut}
+                        className={cn(
+                            'hidden rounded-full sm:inline-flex',
+                            onDark ? 'text-white/80 hover:bg-white/10 hover:text-white' : 'text-muted-foreground',
+                        )}
+                    >
+                        <HugeiconsIcon icon={Logout03Icon} className="size-4" />
+                        Sign out
+                    </Button>
+                ) : (
+                    <Button asChild size="sm" variant="brand" className="hidden h-9 rounded-full px-4 sm:inline-flex">
+                        <Link href="/auth/signin">
+                            Sign in <HugeiconsIcon icon={ArrowRight01Icon} className="size-4" />
+                        </Link>
+                    </Button>
+                )}
+
+                {/* Mobile */}
+                <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+                    <SheetTrigger asChild>
+                        <button
+                            type="button"
+                            aria-label="Open menu"
+                            className={cn(
+                                'grid size-9 place-items-center rounded-full border lg:hidden',
+                                onDark ? 'border-white/15 text-white' : 'border-[var(--hairline)] text-foreground',
+                            )}
                         >
-                            <Link href={`/auth/signin`}>
-                                Sign In
-                            </Link>
-                        </Button>
-                    )}
-                </nav>
-            )}
+                            <HugeiconsIcon icon={Menu01Icon} className="size-4" />
+                        </button>
+                    </SheetTrigger>
+                    <SheetContent side="right" className="w-[86vw] max-w-sm gap-0 p-0">
+                        <SheetHeader className="border-b border-[var(--hairline)] p-5">
+                            <SheetTitle className="sr-only">Menu</SheetTitle>
+                            <Logo size="sm" />
+                        </SheetHeader>
+                        <nav className="flex flex-col p-3" aria-label="Mobile">
+                            {isHomepage &&
+                                NAV_ITEMS.map((item) => (
+                                    <button
+                                        key={item.href}
+                                        type="button"
+                                        onClick={() => handleNavClick(item.href)}
+                                        className="rounded-lg px-3 py-3 text-left text-[15px] font-medium hover:bg-muted"
+                                    >
+                                        {item.label}
+                                    </button>
+                                ))}
+                            {user && (
+                                <Link href="/enrollment" onClick={() => setIsMobileMenuOpen(false)} className="rounded-lg px-3 py-3 text-[15px] font-medium hover:bg-muted">
+                                    Enroll In Courses
+                                </Link>
+                            )}
+                        </nav>
+                        <div className="mt-auto border-t border-[var(--hairline)] p-5">
+                            {user ? (
+                                <div className="flex flex-col gap-2">
+                                    {showPortalButton && (
+                                        <Button asChild variant="brand" className="h-11 w-full rounded-full">
+                                            <Link href={portal.href} onClick={() => setIsMobileMenuOpen(false)}>
+                                                {portal.label} <HugeiconsIcon icon={ArrowRight01Icon} className="size-4" />
+                                            </Link>
+                                        </Button>
+                                    )}
+                                    <Button variant="outline" className="w-full rounded-full" onClick={() => logout()} loading={isLoggingOut}>
+                                        <HugeiconsIcon icon={Logout03Icon} className="size-4" /> Sign out
+                                    </Button>
+                                </div>
+                            ) : (
+                                <Button asChild variant="brand" className="h-11 w-full rounded-full">
+                                    <Link href="/auth/signin" onClick={() => setIsMobileMenuOpen(false)}>
+                                        Sign in to the portal <HugeiconsIcon icon={ArrowRight01Icon} className="size-4" />
+                                    </Link>
+                                </Button>
+                            )}
+                        </div>
+                    </SheetContent>
+                </Sheet>
+            </div>
         </>
     );
 };

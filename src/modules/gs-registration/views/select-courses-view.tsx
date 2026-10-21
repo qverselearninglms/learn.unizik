@@ -28,7 +28,8 @@ export function SelectCoursesView() {
 function SelectCoursesContent() {
     const router = useRouter();
     const coursesQuery = useGsCourses();
-    const status = useGsPaymentStatus();
+    // No payment step → nothing to ask /payment-status about.
+    const status = useGsPaymentStatus({ enabled: !gsConfig.skipPaymentPhase });
     const submit = useSubmitGsRegistration();
 
     const selectedIds = useGsStore((s) => s.selectedIds);
@@ -43,7 +44,11 @@ function SelectCoursesContent() {
     /** Once paid, the paid set is final: the fee was calculated for exactly those courses. */
     const lockAll = effectiveHasPaid && paidIds.length > 0;
 
-    const mandatoryIds = useMemo(() => payload?.courses.filter((c) => c.mandatory).map((c) => c.id) ?? [], [payload]);
+    // Without a payment step the page simply lists the student's courses: all of them are included.
+    const mandatoryIds = useMemo(
+        () => payload?.courses.filter((c) => paymentSkipped || c.mandatory).map((c) => c.id) ?? [],
+        [payload, paymentSkipped],
+    );
     const lockedIds = useMemo(() => new Set(lockAll ? payload?.courses.map((c) => c.id) : mandatoryIds), [lockAll, payload, mandatoryIds]);
 
     // Keep the persisted selection consistent with what's on offer (required + paid courses always present).
@@ -76,12 +81,27 @@ function SelectCoursesContent() {
 
     const handleSubmit = () => {
         if (!payload || !canSubmit) return;
+        if (!gsConfig.submitToBackend) {
+            // No registration endpoint on the backend yet: the student's courses come from
+            // GET /courses, so go straight to them.
+            gsToast.success('Enrollment complete. Taking you to your courses…');
+            router.push(gsConfig.routes.postPayment);
+            return;
+        }
         submit.mutate(
             { courseIds: selectedIds, semester: payload.semester, session: payload.session },
             {
                 onSuccess: (res) => {
-                    gsToast.success(res.message ?? 'Course registration submitted');
-                    router.push(gsConfig.routes.receipt);
+                    // Same key the enrollment page reads for "Continue Learning" (LMS single sign-on).
+                    if (res.ssoLink) {
+                        try {
+                            window.localStorage.setItem('sso_link', JSON.stringify(res.ssoLink));
+                        } catch {
+                            /* storage unavailable: the enrollment page falls back to the LMS login URL */
+                        }
+                    }
+                    gsToast.success(res.message ?? (paymentSkipped ? 'Enrollment complete' : 'Course registration submitted'));
+                    router.push(paymentSkipped ? gsConfig.routes.postPayment : gsConfig.routes.receipt);
                 },
                 onError: (err) => gsToast.error(err.message || "We couldn't submit your registration."),
             },
@@ -91,32 +111,36 @@ function SelectCoursesContent() {
     return (
         <GsPageShell
             step="select"
-        completed={effectiveHasPaid && !paymentSkipped ? ['select', 'pay'] : ['select']}
+            completed={effectiveHasPaid && !paymentSkipped ? ['select', 'pay'] : []}
             withActionBar
-            title="General Studies registration"
+            title={paymentSkipped ? 'Complete your enrollment' : 'General Studies registration'}
             description={
-                payload
-                    ? `Choose your GST courses for the ${payload.semester}, ${payload.session} session. Required courses are already selected.`
-                    : 'Choose your GST courses for this semester.'
+                paymentSkipped
+                    ? 'These are your General Studies courses for the session. Confirm to complete your enrollment and start learning.'
+                    : payload
+                      ? `Choose your GST courses for the ${payload.semester}, ${payload.session} session. Required courses are already selected.`
+                      : 'Choose your GST courses for this semester.'
             }
         >
             <MockBanner />
 
             <div className="space-y-8">
-                <PaymentGate
-                    isLoading={status.isLoading}
-                    isError={status.isError}
-                    onRetry={() => status.refetch()}
-                    hasPaid={effectiveHasPaid}
-                    paymentSkipped={paymentSkipped}
-                    reference={status.data?.reference}
-                    paidAt={status.data?.paidAt}
-                />
+                {!paymentSkipped && (
+                    <PaymentGate
+                        isLoading={status.isLoading}
+                        isError={status.isError}
+                        onRetry={() => status.refetch()}
+                        hasPaid={effectiveHasPaid}
+                        paymentSkipped={paymentSkipped}
+                        reference={status.data?.reference}
+                        paidAt={status.data?.paidAt}
+                    />
+                )}
 
                 <section aria-labelledby="gs-courses-heading">
                     <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2 px-1">
                         <h2 id="gs-courses-heading" className="font-medium">
-                            Available courses
+                            {paymentSkipped ? 'Your courses' : 'Available courses'}
                         </h2>
                         {lockAll && <p className="text-xs text-muted-foreground">Your paid courses are locked.</p>}
                     </div>
@@ -154,6 +178,7 @@ function SelectCoursesContent() {
                     statusLoading={status.isLoading}
                     statusError={status.isError}
                     hasPaid={effectiveHasPaid}
+                    paymentSkipped={paymentSkipped}
                     submitted={status.registrationSubmitted}
                     canPay={canPay}
                     canSubmit={canSubmit}

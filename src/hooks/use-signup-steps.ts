@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { FileText, GraduationCap, School, User } from "lucide-react";
+import { LockPasswordIcon, Mortarboard02Icon, School01Icon, UserIcon } from "@hugeicons/core-free-icons";
 import { academicInfoSchema, accouintInfoSchema, personalInfoSchema, programChoiceSchema } from "@/schema/sign-up-schema";
 import { UseFormReturn } from 'react-hook-form';
 
@@ -7,30 +7,30 @@ import { UseFormReturn } from 'react-hook-form';
 export const STEPS = [
     {
         id: 'personal',
-        title: 'Personal Information',
-        description: 'Basic personal details',
-        icon: User,
+        title: 'Personal',
+        description: 'About you',
+        icon: UserIcon,
         schema: personalInfoSchema,
     },
     {
         id: 'Academics',
-        title: 'Academic Information',
-        description: 'School related info',
-        icon: GraduationCap,
+        title: 'Academic',
+        description: 'Your school details',
+        icon: Mortarboard02Icon,
         schema: academicInfoSchema,
     },
     {
         id: 'Programchoice',
-        title: 'Program Choice',
-        description: `Select program Choice`,
-        icon: School,
+        title: 'Programme',
+        description: 'What you study',
+        icon: School01Icon,
         schema: programChoiceSchema,
     },
     {
         id: 'Account',
-        title: 'Account Information',
-        description: 'Login Information',
-        icon: FileText,
+        title: 'Account',
+        description: 'Your sign-in details',
+        icon: LockPasswordIcon,
         schema: accouintInfoSchema,
     },
 ];

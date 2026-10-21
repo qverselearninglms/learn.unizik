@@ -6,16 +6,16 @@ import { AuthContainerHeader } from '../components/AuthContainerHeader';
 import LoginFormContainer from './components/LoginFormContainer';
 import { FormProvider } from '@/contexts/FormContext';
 import { ApplySection } from './components/LoginFormFields';
-import { LogIn } from 'lucide-react';
+import { Login03Icon } from '@hugeicons/core-free-icons';
 
 const LoginFormPage = () => {
     return (
         <AuthContauiner>
             {/* Header */}
             <AuthContainerHeader
-                heading="WELCOME BACK"
-                subHeading="Sign in to your account to continue"
-                Icon={LogIn}
+                heading="Welcome back"
+                subHeading="Sign in with your university email to continue"
+                // Icon={Login03Icon}
             />
             {/* Form body */}
             <FormProvider>

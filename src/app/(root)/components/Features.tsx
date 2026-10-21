@@ -1,62 +1,59 @@
-"use client";
-
+import { HugeiconsIcon } from '@hugeicons/react';
+import Image from 'next/image';
 import { SITE_TITLE } from '@/config';
-import React, { RefObject, useRef } from 'react';
-import { Card } from './HomeCard';
 import { FEATURES } from '@/lib/constants';
-import { useIntersectionObserver } from '@/hooks/animations/useScrollAnimation';
-
-import Lottie from "lottie-react";
-import animationData from "@/assets/Programming Computer.json"
+import { SectionHeading } from './SectionHeading';
 
 export const Features: React.FC = () => {
-    const pRef = useRef<HTMLDivElement>(null);
-    const isVisible = useIntersectionObserver(pRef as RefObject<HTMLElement>);
-
     return (
-        <section
-            ref={pRef}
-            id="features"
-            className="py-20 px-6 bg-gray-50 dark:bg-gray-900 min-h-[85vh] flex items-center"
-        >
-            <div className="w-full max-w-7xl mx-auto text-center">
-                <div className="flex items-center justify-end mb-16">
-                    <div className="relative h-auto w-[300px]">
-                        <Lottie animationData={animationData} />
-                    </div>
-                    <div className="text-left">
-                        <h2 className="text-3xl md:text-4xl font-bold text-gray-800 dark:text-white mb-4">
-                            Why Choose {SITE_TITLE}?
-                        </h2>
-                        <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-                            We provide comprehensive business education that combines theoretical knowledge
-                            with practical skills to prepare leaders for the global marketplace.
-                        </p>
-                    </div>
-                </div>
+        <section id="features" className="relative bg-[var(--ivory)] py-24 sm:py-28">
+            <div className="container-page">
+                <SectionHeading
+                    eyebrow={`Why ${SITE_TITLE}`}
+                    title={
+                        <>
+                            A university education, <span className="text-accent">without the distance</span>
+                        </>
+                    }
+                    description="Built with the faculties of Nnamdi Azikiwe University to keep teaching rigorous and learning flexible."
+                />
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    {FEATURES.map((feature, index) => (
-                        <Card key={index} className="text-center dark:bg-gray-800 dark:border-gray-700">
-                            <div
-                                className={`w-20 h-20 bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-6 transition-all duration-300 hover:-translate-x-2 hover:shadow-lg border-t-4 border-t-accent 
-                            ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}
-                            `}
-                                style={{ transitionDelay: `${index * 300}ms` }}
-                            >
-                                {feature.icon}
-                            </div>
-                            <h3 className={`text-xl font-semibold text-gray-800 dark:text-white mb-4`}>
-                                {feature.title}
-                            </h3>
-                            <p className={`text-gray-600 dark:text-gray-300 leading-relaxed transition-all duration-1000 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4'
-                                }`}
-                                style={{ transitionDelay: `${index * 300 + 200}ms` }}
-                            >
-                                {feature.description}
+                <div className="grid gap-5 lg:grid-cols-[1.1fr_1fr]">
+                    {/* Feature image */}
+                    <figure className="group relative min-h-[380px] overflow-hidden rounded-[28px] bg-brand-navy text-white shadow-lift">
+                        <Image
+                            src="/slides/ai3.jpg"
+                            alt="Open books stacked in a circle"
+                            fill
+                            sizes="(min-width: 1024px) 50vw, 100vw"
+                            className="object-cover opacity-55 mix-blend-luminosity transition-transform duration-700 group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[var(--navy-950)] via-[var(--navy-950)]/40 to-transparent" />
+                        <figcaption className="absolute inset-x-0 bottom-0 p-8 sm:p-10">
+                            <p className="font-display text-2xl leading-snug text-balance sm:text-3xl">
+                                “Ut Prosit”, learning that is of use to you, your community and the world.
                             </p>
-                        </Card>
-                    ))}
+                            <p className="mt-4 text-sm uppercase tracking-[0.2em] text-white/55">University motto</p>
+                        </figcaption>
+                    </figure>
+
+                    {/* Feature list */}
+                    <ul className="flex flex-col gap-5">
+                        {FEATURES.map(({ icon: Icon, title, description }) => (
+                            <li
+                                key={title}
+                                className="flex flex-1 gap-5 rounded-3xl border border-[var(--hairline)] bg-card p-7 shadow-soft transition-shadow duration-300 hover:shadow-lift"
+                            >
+                                <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-accent/10 text-accent">
+                                    <HugeiconsIcon icon={Icon} className="size-5" />
+                                </span>
+                                <div>
+                                    <h3 className="text-lg font-semibold text-foreground">{title}</h3>
+                                    <p className="mt-2 leading-relaxed text-muted-foreground">{description}</p>
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
                 </div>
             </div>
         </section>

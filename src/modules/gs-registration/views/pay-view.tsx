@@ -15,6 +15,7 @@ import { PaymentSummary } from '../components/payment-summary';
 import { FullPageMessage, InlineError, PageSkeleton } from '../components/states';
 import { VerificationPanel } from '../components/verification-panel';
 import { gsConfig } from '../gs.config';
+import { SkipToEnrollment } from '../components/skip-redirect';
 import { useGsCourses } from '../hooks/use-gs-courses';
 import { useInitiateGsPayment, useVerifyGsPayment } from '../hooks/use-gs-payment';
 import { useGsPaymentStatus } from '../hooks/use-gs-payment-status';
@@ -27,6 +28,8 @@ import { gsCallbackQuerySchema } from '../schemas';
 import { useGsStore } from '../store/gs-registration-store';
 
 export function PayView() {
+    // No payment in this portal: send students straight to their courses.
+    if (gsConfig.skipPaymentPhase) return <SkipToEnrollment />;
     return (
         <GsAccessGuard>
             <Suspense fallback={<PageSkeleton />}>
@@ -42,24 +45,6 @@ function PayContent() {
     const params = useSearchParams();
     const queryClient = useQueryClient();
 
-    if (gsConfig.skipPaymentPhase) {
-        return (
-            <GsPageShell step="pay" completed={['select']} title="Payment phase skipped">
-                <MockBanner />
-                <FullPageMessage
-                    icon={<BadgeCheck className="size-6 text-emerald-600" />}
-                    title="The GS payment step is skipped for this portal"
-                    description="You can continue with your course registration without going through the payment screen."
-                    actions={
-                        <Button asChild>
-                            <Link href={gsConfig.routes.base}>Back to course selection</Link>
-                        </Button>
-                    }
-                />
-            </GsPageShell>
-        );
-    }
-
     const pendingReference = useGsStore((s) => s.pendingReference);
     const setPendingReference = useGsStore((s) => s.setPendingReference);
     const selectedIds = useGsStore((s) => s.selectedIds);
@@ -69,7 +54,9 @@ function PayContent() {
      * It is user-editable, so we read ONLY the reference and let the backend say what happened.
      */
     const urlReference = useMemo(() => {
-        const raw = params.get('reference') ?? params.get('trxref');
+        // Credo returns both `transRef` (its own ref, which /verify expects) and `reference` (the
+        // backend's business ref), so `transRef` must win. Global Pay uses `txnRef`.
+        const raw = params.get('transRef') ?? params.get('txnRef') ?? params.get('reference') ?? params.get('trxref');
         if (raw === null) return { present: false as const, value: null };
         const parsed = gsCallbackQuerySchema.safeParse({ reference: raw });
         return { present: true as const, value: parsed.success ? parsed.data.reference : null };
@@ -81,9 +68,11 @@ function PayContent() {
     const verify = useVerifyGsPayment(activeReference);
     const verified = verify.state === 'success';
     const status = useGsPaymentStatus({ pollUntilPaid: verified });
-    const unlocked = verified && status.hasPaidGsFee;
+    // The backend's /verify is authoritative: once it says SUCCESS, move the student on to
+    // enrollment. /payment-status keeps refreshing in the background for the rest of the portal.
+    const unlocked = verified;
 
-    const receiptQuery = useGsReceipt({ enabled: unlocked });
+    const receiptQuery = useGsReceipt({ enabled: unlocked, reference: activeReference });
     const pdf = useReceiptPdf(receiptQuery.receipt);
 
     const countdown = useRedirectCountdown({
@@ -162,6 +151,7 @@ function PayContent() {
                     attempts={verify.attempts}
                     maxAttempts={verify.maxAttempts}
                     message={verify.data?.message}
+                    errorMessage={verify.error?.message}
                     countdown={countdown}
                     onContinue={() => router.push(gsConfig.routes.postPayment)}
                     onCheckAgain={() => {

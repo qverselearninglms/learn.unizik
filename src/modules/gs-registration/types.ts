@@ -26,4 +26,4 @@ export interface GsHostStudent {
     passportUrl?: string;
 }
 
-export type GsStepKey = 'select' | 'pay' | 'receipt';
+export type GsStepKey = 'select' | 'pay' | 'receipt' | 'enroll';

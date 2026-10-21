@@ -6,12 +6,14 @@ export const useScrollAnimation = () => {
     const [isScrolled, setIsScrolled] = useState(false);
 
     useEffect(() => {
+        // The app scrolls <body> (html/body have height: 100%), not the window, so read both.
         const handleScroll = () => {
-            setIsScrolled(window.scrollY > 50);
+            setIsScrolled(Math.max(window.scrollY, document.body.scrollTop) > 24);
         };
 
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
+        handleScroll();
+        document.addEventListener('scroll', handleScroll, { capture: true, passive: true });
+        return () => document.removeEventListener('scroll', handleScroll, { capture: true });
     }, []);
 
     return { isScrolled };

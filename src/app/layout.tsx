@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist_Mono, Outfit } from "next/font/google";
+//@ts-ignore
 import "./globals.css";
 import { APP_CONFIG } from "@/config";
 import { cookies } from "next/headers";
@@ -12,9 +13,10 @@ import { QueryProvider } from "@/providers/query-provider";
 import AuthProvider from "@/providers/AuthProvider";
 import { PageLoadProviders } from "@/providers/page-load-provider";
 
-const geistSans = Geist({
-	variable: "--font-geist-sans",
+const outfit = Outfit({
+	variable: "--font-outfit",
 	subsets: ["latin"],
+	display: "swap",
 });
 
 const geistMono = Geist_Mono({
@@ -24,7 +26,7 @@ const geistMono = Geist_Mono({
 
 const META_THEME_COLORS = {
 	light: "#ffffff",
-	dark: "#09090b",
+	dark: "#06182d",
 }
 
 export const metadata: Metadata = {
@@ -63,15 +65,14 @@ export default async function RootLayout({
 	const cookieStore = await cookies()
 	const activeThemeValue = cookieStore.get("active_theme")?.value
 	const isScaled = activeThemeValue?.endsWith("-scaled")
-
 	return (
-		<html lang="en" className="h-full" suppressHydrationWarning>
+		<html lang="en" className={cn("h-full", outfit.variable, geistMono.variable)} suppressHydrationWarning>
 			<head>
 				<link rel="icon" href="/logo/logo.jpg" type="image/x-icon" />
 			</head>
 			<body
 				className={cn(
-					`${geistSans.variable} ${geistMono.variable} h-full antialiased`,
+					"h-full font-sans antialiased",
 					activeThemeValue ? `theme-${activeThemeValue}` : "",
 					isScaled ? "theme-scaled" : "",
 				)}

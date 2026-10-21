@@ -1,19 +1,16 @@
 import { useCourseStore } from '../stores/course-store';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { BookOpen, Plus, Award, Rocket, Target, Database, RefreshCcw } from 'lucide-react';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { ArrowRight01Icon, BookOpen01Icon, ComputerVideoIcon, PlusSignIcon, RefreshIcon } from '@hugeicons/core-free-icons';
 import { motion } from 'framer-motion';
 import { useCourseQueries } from '../hooks/use-course-queries';
 import { courseService } from '../services/course-service';
 import { ConfirmModal } from '@/components/global/confirm-modal';
 import Link from 'next/link';
-import { lmsLoginUrl } from '@/config';
-import { useAuthContext } from '@/providers/AuthProvider';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 
 export function DashboardView({ userId }: { userId: string }) {
-    const { enrolledCourses, toggleShowAllCategories, clearCache } = useCourseStore();
+    const { enrolledCourses, toggleShowAllCategories } = useCourseStore();
     const [ssoLink] = useLocalStorage<string>('sso_link', '');
     // const { user } = useAuthContext();
     const {
@@ -135,109 +132,125 @@ export function DashboardView({ userId }: { userId: string }) {
     //         </div>
     //     );
     // }
+    const firstName = (user as { first_name?: string } | null)?.first_name;
+    const openLms = () => courseService.redirectToCourseWarePlatform(String(userIdentity), ssoLink);
+    const courseCount = enrolledCourses.length;
+
     return (
         <>
-            <div className="space-y-12">
-                <motion.div
-                    initial={{ y: -20, opacity: 0 }}
+            <div className="space-y-10">
+                {/* Welcome banner */}
+                <motion.section
+                    initial={{ y: -16, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
-                    className="flex justify-between items-center"
+                    className="relative isolate overflow-hidden rounded-[28px] bg-[#030b1e] p-7 text-white shadow-lift sm:p-10"
                 >
-                    <div>
-                        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Learning Dashboard</h1>
-                        <p className="text-primary-800 mt-2">Continue where you left off</p>
+                    <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+                        <div className="absolute -bottom-40 -left-40 h-[28rem] w-[28rem] rounded-full bg-[conic-gradient(from_248deg_at_62%_60%,rgba(242,106,27,0.6),rgba(31,95,209,0.35),rgba(3,11,30,0)_58%)] blur-3xl" />
+                        <div className="absolute -bottom-24 -left-24 h-48 w-[36rem] rotate-[-13deg] rounded-[100%] border border-[#f26a1b]/30" />
+                        <div className="absolute right-8 top-8 h-16 w-24 bg-[radial-gradient(circle,rgba(255,255,255,0.28)_1.2px,transparent_1.2px)] [background-size:10px_10px] opacity-30" />
                     </div>
-                    <div className="flex items-center space-x-5">
-                        <Button
-                            type="button"
-                            variant="secondary"
-                            size="sm"
-                            onClick={clearCache}
-                            className="text-xs"
-                        >
-                            <Database className="w-3 h-3 mr-1" />
-                            Refresh Data
-                        </Button>
-                        {/* {enrolledCourses.length === 0 && ( */}
-                        <Button
-                            onClick={toggleShowAllCategories}
-                            variant="outline"
-                            className="border-blue-200 text-blue-600 hover:bg-blue-50 hover:text-blue-600 dark:border-yellow-200 dark:text-yellow-600 dark:hover:bg-yellow-50 dark:hover:text-yellow-600"
-                        >
-                            <Plus className="w-4 h-4 mr-2" />
-                            Enroll in More Programs
-                        </Button>
-                        {/* )} */}
-                    </div>
-                </motion.div>
-
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                    {enrolledCourses.map((enrollment, index) => {
-                        return (
-                            <motion.div
-                                key={enrollment.id}
-                                initial={{ y: 20, opacity: 0 }}
-                                animate={{ y: 0, opacity: 1 }}
-                                transition={{ delay: index * 0.1 }}
-                                whileHover={{ y: -5 }}
+                    <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+                        <div>
+                            <p className="text-sm font-medium text-white/70">My learning</p>
+                            <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">
+                                Welcome{firstName ? ', ' : ' '}
+                                <span className="bg-gradient-to-r from-[#ff8a2a] via-[#f26a1b] to-[#ff9d4d] bg-clip-text text-transparent">
+                                    {firstName ?? 'back'}
+                                </span>
+                            </h1>
+                            <p className="mt-3 max-w-xl text-slate-200/85">
+                                {courseCount > 0
+                                    ? `You are enrolled in ${courseCount} ${courseCount === 1 ? 'course' : 'courses'}. Head to the LMS to start learning.`
+                                    : 'Your enrolled courses will appear here.'}
+                            </p>
+                        </div>
+                        <div className="flex flex-col gap-3 sm:flex-row">
+                            <Button
+                                onClick={openLms}
+                                className="h-12 rounded-full bg-gradient-to-r from-[#f26a1b] via-[#c2410c] to-[#1f5fd1] px-6 text-base font-semibold text-white shadow-[0_12px_36px_rgba(242,106,27,0.4)] hover:opacity-95"
                             >
-                                <Card className="h-full border-2 border-transparent dark:border-gray-600 hover:border-blue-300 transition-all duration-300 hover:shadow-lg">
-                                    <CardHeader className="pb-4">
-                                        <div className="flex items-center justify-between">
-                                            <CardTitle className="text-lg leading-tight">
-                                                {enrollment.course.course_name || enrollment.course.title}
-                                            </CardTitle>
-                                            <Award className="w-5 h-5 text-yellow-500" />
-                                        </div>
-                                        <CardDescription className="line-clamp-2">
-                                            {enrollment.course.course_group}
-                                        </CardDescription>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <div className="space-y-4">
-                                            <div className="flex items-center justify-between text-sm text-gray-600">
-                                                <span className="text-xs text-gray-500">
-                                                    {enrollment.course.short_name}
-                                                </span>
-                                            </div>
+                                <HugeiconsIcon icon={ComputerVideoIcon} className="size-5" />
+                                Go to LMS
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                onClick={reloadCategoriesAndCourses}
+                                disabled={isLoading || isFetching}
+                                className="h-12 rounded-full border border-white/20 px-5 text-white hover:bg-white/10 hover:text-white"
+                            >
+                                <HugeiconsIcon icon={RefreshIcon} className={`size-4 ${isFetching ? 'animate-spin' : ''}`} />
+                                Refresh
+                            </Button>
+                        </div>
+                    </div>
+                </motion.section>
 
-                                            <div className="space-y-2">
-                                                <div className="flex justify-between text-sm">
-                                                    <span className="text-gray-600">Progress</span>
-                                                    <span className="font-semibold">{enrollment.progress}%</span>
-                                                </div>
-                                                <Progress value={enrollment.progress} className="h-2" />
-                                            </div>
+                {/* Courses */}
+                <section aria-labelledby="my-courses-heading">
+                    <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+                        <div>
+                            <h2 id="my-courses-heading" className="text-2xl font-bold text-foreground">My courses</h2>
+                            <p className="text-sm text-muted-foreground">Everything you are enrolled in this session.</p>
+                        </div>
+                        <Button variant="outline" onClick={toggleShowAllCategories} className="rounded-full">
+                            <HugeiconsIcon icon={PlusSignIcon} className="size-4" />
+                            Enroll in more programmes
+                        </Button>
+                    </div>
 
-                                            <div className="grid grid-cols-2 gap-5">
-                                                <Button
-                                                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                                                    onClick={() => courseService.redirectToCourseWarePlatform(String(userIdentity), ssoLink)}
-                                                >
-                                                    Continue Learning
-                                                </Button>
-                                                {/* <Button
-                                                    variant="ghost"
-                                                    className="dark:hover:text-white"
-                                                    // onClick={() => handleUnenroll(enrollment.course.id, enrollment.course.course_group_id)}
-                                                    // disabled={isUnenrollmentProcessing}
-                                                    onClick={() => handleUnenrollClick(
-                                                        enrollment.courseId,
-                                                        enrollment.course.course_group_id,
-                                                        enrollment.course.course_name || enrollment.course.title
-                                                    )}
-                                                    disabled={isUnenrollmentProcessing}
-                                                >
-                                                    {isUnenrollmentProcessing ? 'Unenrolling...' : 'Unenroll'}
-                                                </Button> */}
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </motion.div>
-                        )
-                    })}
-                </div>
+                    {courseCount === 0 ? (
+                        <div className="flex flex-col items-center rounded-3xl border border-dashed border-[var(--hairline)] bg-card px-6 py-16 text-center">
+                            <span className="grid size-14 place-items-center rounded-2xl bg-accent/10 text-accent">
+                                <HugeiconsIcon icon={BookOpen01Icon} className="size-6" />
+                            </span>
+                            <h3 className="mt-5 text-lg font-bold text-foreground">No courses yet</h3>
+                            <p className="mt-1 max-w-sm text-sm text-muted-foreground">
+                                Complete your General Studies enrollment to see your courses here.
+                            </p>
+                            <Button asChild variant="gradient" className="mt-6 h-11 rounded-full px-6">
+                                <Link href="/gs-registration">Complete enrollment</Link>
+                            </Button>
+                        </div>
+                    ) : (
+                        <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                            {enrolledCourses.map((enrollment, index) => (
+                                <motion.li
+                                    key={enrollment.id}
+                                    initial={{ y: 16, opacity: 0 }}
+                                    animate={{ y: 0, opacity: 1 }}
+                                    transition={{ delay: index * 0.06 }}
+                                    className="group flex flex-col rounded-3xl border border-[var(--hairline)] bg-card p-6 shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-lift"
+                                >
+                                    <div className="flex items-start justify-between gap-3">
+                                        <span className="grid size-12 place-items-center rounded-2xl bg-primary/[0.07] text-primary transition-colors group-hover:bg-primary group-hover:text-white dark:bg-white/[0.06] dark:text-[oklch(0.8_0.08_250)]">
+                                            <HugeiconsIcon icon={BookOpen01Icon} className="size-5" />
+                                        </span>
+                                        {enrollment.course.course_group && (
+                                            <span className="rounded-full bg-accent/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-accent">
+                                                {enrollment.course.course_group}
+                                            </span>
+                                        )}
+                                    </div>
+                                    {enrollment.course.short_name && (
+                                        <p className="mt-6 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                                            {enrollment.course.short_name}
+                                        </p>
+                                    )}
+                                    <h3 className="mt-1 text-lg font-bold leading-snug text-foreground">
+                                        {enrollment.course.course_name || enrollment.course.title}
+                                    </h3>
+                                    <div className="mt-auto pt-6">
+                                        <Button onClick={openLms} variant="gradient" className="h-11 w-full rounded-full">
+                                            Continue learning
+                                            <HugeiconsIcon icon={ArrowRight01Icon} className="size-4" />
+                                        </Button>
+                                    </div>
+                                </motion.li>
+                            ))}
+                        </ul>
+                    )}
+                </section>
             </div>
             <ConfirmModal
                 open={unenrollModalOpen}

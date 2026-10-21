@@ -28,9 +28,13 @@ export function CourseList({ courses, selectedIds, lockedIds, paidIds, onToggle 
 
     if (courses.length === 0) {
         return (
-            <p className="rounded-xl border border-dashed bg-card p-8 text-center text-sm text-muted-foreground">
-                No GS courses are open for registration this semester.
-            </p>
+            <div className="rounded-2xl border border-dashed bg-card p-8 text-center">
+                <p className="font-semibold text-foreground">No courses on your account yet</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                    Your General Studies courses haven&apos;t been assigned yet. Please check back later or contact the
+                    Directorate of General Studies.
+                </p>
+            </div>
         );
     }
 

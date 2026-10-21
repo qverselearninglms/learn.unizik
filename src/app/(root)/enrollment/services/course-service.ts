@@ -4,6 +4,7 @@ import { apiClient } from '@/core/client';
 import { ApiError } from '@/types/auth';
 import { lmsLoginUrl } from '@/config';
 import { extractLevel } from '@/lib/utils';
+import { gsApi } from '@/modules/gs-registration/api/gs-api';
 
 interface EnrolledCourseResponseType {
     course_id: number | string;
@@ -18,16 +19,17 @@ class CourseService {
     private apiCoursesCache: ApiCourse[] | null = null;
 
     getEnrolledCourseWithCategories = async (): Promise<Enrollment[]> => {
-        try {
-            const response = await apiClient.get<EnrollmentApiResponse>("/student/my-enrolled-courses-with-category");
-            const apiCourses = (response as any).courses || []; //response.data.courses || [];
-
-            // Transform API courses to Enrollment format
-            return apiCourses.map((apiCourse: EnrolledCourseResponseType) => this.transformApiCourseToEnrollment(apiCourse));
-        } catch (error) {
-            console.error('Failed to fetch enrollments from API:', error);
-            return [];
-        }
+        // Same source and parser as /gs-registration (GET /account/student/gs/courses), so both
+        // pages always agree on the student's courses. Errors surface instead of showing an empty page.
+        const payload = await gsApi.getCourses();
+        return payload.courses.map((c) =>
+            this.transformApiCourseToEnrollment({
+                course_id: c.id,
+                course_name: c.title,
+                short_name: c.code,
+                course_group: c.category,
+            }),
+        );
     }
 
     getPaidCategories = async (): Promise<Enrollment[]> => {
@@ -82,7 +84,20 @@ class CourseService {
     }
 
     // Helper to transform API course data to Enrollment
-    private transformApiCourseToEnrollment = (apiCourse: any): Enrollment => {
+    private transformApiCourseToEnrollment = (raw: any): Enrollment => {
+        // Accept the GS shape (course_id/course_name/short_name/course_group) and the common
+        // Moodle / camelCase variants, so a renamed field doesn't render an empty card.
+        const src = raw?.course && typeof raw.course === 'object' ? { ...raw, ...raw.course } : raw ?? {};
+        const pick = (...keys: string[]) => keys.map((k) => src[k]).find((v) => v !== undefined && v !== null && v !== '');
+        const apiCourse = {
+            course_id: pick('course_id', 'courseId', 'id'),
+            course_name: pick('course_name', 'courseName', 'fullname', 'full_name', 'name', 'title', 'course_title'),
+            short_name: pick('short_name', 'shortName', 'shortname', 'code', 'course_code'),
+            course_group: pick('course_group', 'courseGroup', 'category_name', 'categoryName', 'group_name'),
+            course_group_id: pick('course_group_id', 'courseGroupId', 'category_id', 'categoryId', 'category'),
+        };
+        if (!apiCourse.course_name) console.warn('[enrollment] Course without a recognised name field', raw);
+
         // Create course object from API data
         const course: Course = {
             id: `${apiCourse.course_id}`,

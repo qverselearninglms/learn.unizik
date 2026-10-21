@@ -33,19 +33,22 @@ export function CourseDashboard({ userId }: { userId: string }) {
     }
 
     if (mergedCategoriesQuery.error || enrollmentsQuery.error) {
+        const message = (enrollmentsQuery.error ?? mergedCategoriesQuery.error)?.message;
         return (
-            <div className="pt-[100px] text-center text-red-600 p-8">
-                Error loading course data. Please try again.
-                <br />
-                <button
-                    onClick={() => {
-                        mergedCategoriesQuery.refetch();
-                        enrollmentsQuery.refetch();
-                    }}
-                    className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                >
-                    Retry
-                </button>
+            <div className="flex min-h-[60vh] items-center justify-center px-6 pt-24">
+                <div className="max-w-md rounded-3xl border border-destructive/20 bg-card p-8 text-center shadow-soft" role="alert">
+                    <h2 className="text-lg font-bold text-foreground">We couldn&apos;t load your courses</h2>
+                    <p className="mt-2 text-sm text-muted-foreground">{message || 'Please try again.'}</p>
+                    <button
+                        onClick={() => {
+                            mergedCategoriesQuery.refetch();
+                            enrollmentsQuery.refetch();
+                        }}
+                        className="mt-6 rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+                    >
+                        Try again
+                    </button>
+                </div>
             </div>
         );
     }
@@ -53,8 +56,8 @@ export function CourseDashboard({ userId }: { userId: string }) {
     const CurrentView = VIEW_COMPONENTS[view];
 
     return (
-        <div className="pt-[60px] min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-indigo-950 py-8  dark:text-white">
-            <div className="container mx-auto px-4 max-w-6xl">
+        <div className="min-h-screen bg-[var(--ivory)] py-10">
+            <div className="container-page max-w-6xl">
                 <AnimatePresence mode="wait">
                     <motion.div
                         key={view}
