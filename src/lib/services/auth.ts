@@ -19,9 +19,12 @@ export const authApi = {
     // simulateApiRequest(),
 
     signup: async (data: SignUpFormData): Promise<SignupResponse> => {
-        // The backend validates `level` as a string ("100"), while the form keeps it as a number.
-        const body = { ...data, level: data.level != null ? String(data.level) : undefined };
-        const response = await apiClient.post<SignupResponse>("/auth/register", body);
+        const signupPayload = {
+            ...data,
+            // Backend validation requires a string value ("100", "200", ...).
+            level: String(data.level),
+        };
+        const response = await apiClient.post<SignupResponse>("/auth/register", signupPayload);
 
         return { ...response, user: { email: data.email } } as unknown as SignupResponse;
     },
