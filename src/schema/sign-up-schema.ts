@@ -18,7 +18,7 @@ export const personalInfoSchema = z.object({
 export const LEVEL_OPTIONS = [100, 200, 300, 400, 500] as const;
 
 export const academicInfoSchema = z.object({
-    // Submitted as an integer (100, 200, ...); the Level select converts its string value with Number().
+    // Kept as a number in-form (100, 200, ...); converted to string at the auth API boundary.
     level: z
         .number({ error: 'Please select your level' })
         .int()

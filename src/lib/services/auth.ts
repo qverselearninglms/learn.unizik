@@ -19,7 +19,12 @@ export const authApi = {
     // simulateApiRequest(),
 
     signup: async (data: SignUpFormData): Promise<SignupResponse> => {
-        const response = await apiClient.post<SignupResponse>("/auth/register", data);
+        const signupPayload = {
+            ...data,
+            // Backend validation requires a string value ("100", "200", ...).
+            level: String(data.level),
+        };
+        const response = await apiClient.post<SignupResponse>("/auth/register", signupPayload);
 
         return { ...response, user: { email: data.email } } as unknown as SignupResponse;
     },
