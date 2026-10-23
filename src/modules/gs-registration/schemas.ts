@@ -135,6 +135,20 @@ export const gsCoursesPayloadSchema = z.preprocess(toCoursesPayload, z.object({
 }));
 export type GsCoursesPayload = z.infer<typeof gsCoursesPayloadSchema>;
 
+/* ───────────────────────────── enrollment check ───────────────────────────── */
+
+/** GET /check-enrollment → { status, has_enrolled: boolean }. Anything unclear counts as not enrolled. */
+export const gsEnrollmentCheckSchema = z.preprocess(
+    (raw) => {
+        if (!raw || typeof raw !== 'object') return raw;
+        const r = { ...(raw as Record<string, unknown>) };
+        r.hasEnrolled ??= r.isEnrolled ?? r.enrolled;
+        return r;
+    },
+    z.object({ hasEnrolled: flag }),
+);
+export type GsEnrollmentCheck = z.infer<typeof gsEnrollmentCheckSchema>;
+
 /* ───────────────────────────── payment status (the gate) ───────────────────────────── */
 
 /**

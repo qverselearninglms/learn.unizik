@@ -18,7 +18,7 @@ export const personalInfoSchema = z.object({
 export const LEVEL_OPTIONS = [100, 200, 300, 400, 500] as const;
 
 export const academicInfoSchema = z.object({
-    // Submitted as an integer (100, 200, ...); the Level select converts its string value with Number().
+    // Held as an integer (100, 200, ...) in the form; authApi.signup sends it as a string, which the backend requires.
     level: z
         .number({ error: 'Please select your level' })
         .int()

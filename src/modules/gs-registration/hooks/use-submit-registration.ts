@@ -10,6 +10,9 @@ export function useSubmitGsRegistration() {
     return useMutation({
         mutationFn: (input: GsSubmitRegistrationPayload) => gsApi.submitRegistration(input),
         onSuccess: () => {
+            // Enrollment is done: let /enrollment through straight away, then confirm with the backend.
+            queryClient.setQueryData(gsKeys.enrollment, { hasEnrolled: true });
+            queryClient.invalidateQueries({ queryKey: gsKeys.enrollment });
             queryClient.invalidateQueries({ queryKey: gsKeys.status });
             queryClient.invalidateQueries({ queryKey: gsKeys.receipt });
         },

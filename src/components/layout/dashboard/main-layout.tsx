@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import { ROUTES } from "@/config";
 import { useAuthContext } from "@/providers/AuthProvider";
 import { useProgress } from '@bprogress/next';
-import { gsConfig } from '@/modules/gs-registration/gs.config';
+import { resolveStudentHome } from '@/modules/gs-registration/hooks/use-gs-enrollment';
 interface MainLayoutProps {
     children: React.ReactNode;
     requireAuth?: boolean;
@@ -24,7 +24,7 @@ export function MainLayout({ children, requireAuth = false }: MainLayoutProps) {
                 router.push(ROUTES.login);
                 // } else if (!requireAuth && isAuthenticated && pathname === ROUTES.login) {
             } else if (!requireAuth && isAuthenticated && pathname === ROUTES.login) {
-                if (user?.role === "STUDENT") router.push(gsConfig.routes.base)
+                if (user?.role === "STUDENT") resolveStudentHome().then((home) => router.push(home));
                 else router.push(`/${user?.role.toLocaleLowerCase() + ROUTES.dashboard}`);
             }
         }

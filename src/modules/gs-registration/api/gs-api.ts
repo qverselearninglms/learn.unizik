@@ -3,6 +3,7 @@ import { gsConfig } from '../gs.config';
 import { gsHttp } from '../host';
 import {
     gsCoursesPayloadSchema,
+    gsEnrollmentCheckSchema,
     gsInitiatePayloadSchema,
     gsInitiateResponseSchema,
     gsPaymentStatusSchema,
@@ -10,6 +11,7 @@ import {
     gsSubmitRegistrationPayloadSchema,
     gsVerifyResponseSchema,
     type GsCoursesPayload,
+    type GsEnrollmentCheck,
     type GsInitiatePayload,
     type GsInitiateResponse,
     type GsPaymentStatus,
@@ -123,12 +125,22 @@ export const gsApi = {
     /** Final "Submit Course Registration". The backend must itself refuse if the fee is unpaid. */
     submitRegistration(input: GsSubmitRegistrationPayload): Promise<{ message?: string; ssoLink?: string }> {
         const payload = gsSubmitRegistrationPayloadSchema.parse(input);
-        const body = { course_ids: toWireIds(payload.courseIds), semester: payload.semester, session: payload.session };
+        // Backend contract: POST /course-enrollment { course_ids: [3, 21, 34, 36] }.
+        const body = { course_ids: toWireIds(payload.courseIds) };
         return run(
             async () => (gsConfig.useMock ? (await mock()).submit(body) : gsHttp.post(endpoints.register, body)),
             // Only the message matters; accept any object.
             gsPassthroughMessage,
             'registration',
+        );
+    },
+
+    /** Has this student completed GS enrollment? Drives /gs-registration vs /enrollment. */
+    checkEnrollment(): Promise<GsEnrollmentCheck> {
+        return run(
+            async () => (gsConfig.useMock ? (await mock()).checkEnrollment() : gsHttp.get(endpoints.checkEnrollment)),
+            gsEnrollmentCheckSchema,
+            'enrollment status',
         );
     },
 };

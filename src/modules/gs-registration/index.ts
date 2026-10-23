@@ -10,4 +10,5 @@ export { ReceiptView } from './views/receipt-view';
 
 export { gsConfig } from './gs.config';
 export { useGsPaymentStatus } from './hooks/use-gs-payment-status';
+export { useGsEnrollmentStatus, resolveStudentHome } from './hooks/use-gs-enrollment';
 export type { GsReceipt, GsPaymentStatus, GsCourse, GsHostStudent } from './types';

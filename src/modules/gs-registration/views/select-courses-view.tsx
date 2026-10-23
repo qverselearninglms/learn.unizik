@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { CourseList } from '../components/course-list';
 import { GsAccessGuard } from '../components/access-guard';
@@ -8,10 +8,11 @@ import { GsPageShell } from '../components/gs-page-shell';
 import { MockBanner } from '../components/mock-banner';
 import { PaymentGate } from '../components/payment-gate';
 import { SelectionBar } from '../components/selection-bar';
-import { CourseListSkeleton, InlineError } from '../components/states';
+import { CourseListSkeleton, InlineError, PageSkeleton } from '../components/states';
 import { gsConfig } from '../gs.config';
 import { gsToast } from '../host';
 import { useGsCourses } from '../hooks/use-gs-courses';
+import { useGsEnrollmentStatus } from '../hooks/use-gs-enrollment';
 import { useGsPaymentStatus } from '../hooks/use-gs-payment-status';
 import { useSubmitGsRegistration } from '../hooks/use-submit-registration';
 import { summariseSelection } from '../lib/selection';
@@ -20,9 +21,25 @@ import { useGsStore } from '../store/gs-registration-store';
 export function SelectCoursesView() {
     return (
         <GsAccessGuard>
-            <SelectCoursesContent />
+            <NotYetEnrolledGate>
+                <SelectCoursesContent />
+            </NotYetEnrolledGate>
         </GsAccessGuard>
     );
+}
+
+/** Students who already completed GS enrollment belong on /enrollment, not here. */
+function NotYetEnrolledGate({ children }: { children: ReactNode }) {
+    const router = useRouter();
+    const check = useGsEnrollmentStatus();
+
+    useEffect(() => {
+        if (check.hasEnrolled) router.replace(gsConfig.routes.postPayment);
+    }, [check.hasEnrolled, router]);
+
+    // If the check itself fails, let the student continue rather than lock them out.
+    if (check.isLoading || check.hasEnrolled) return <PageSkeleton />;
+    return <>{children}</>;
 }
 
 function SelectCoursesContent() {
@@ -82,8 +99,7 @@ function SelectCoursesContent() {
     const handleSubmit = () => {
         if (!payload || !canSubmit) return;
         if (!gsConfig.submitToBackend) {
-            // No registration endpoint on the backend yet: the student's courses come from
-            // GET /courses, so go straight to them.
+            // Submitting switched off (NEXT_PUBLIC_GS_SUBMIT_REGISTRATION=false): just go to the courses.
             gsToast.success('Enrollment complete. Taking you to your courses…');
             router.push(gsConfig.routes.postPayment);
             return;
@@ -103,7 +119,7 @@ function SelectCoursesContent() {
                     gsToast.success(res.message ?? (paymentSkipped ? 'Enrollment complete' : 'Course registration submitted'));
                     router.push(paymentSkipped ? gsConfig.routes.postPayment : gsConfig.routes.receipt);
                 },
-                onError: (err) => gsToast.error(err.message || "We couldn't submit your registration."),
+                onError: (err) => gsToast.error(err.message || "We couldn't complete your enrollment. Please try again."),
             },
         );
     };

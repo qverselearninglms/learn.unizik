@@ -11,7 +11,6 @@ import { useLocalStorage } from "./use-local-storage";
 import { getSession, signIn, signOut } from "next-auth/react";
 import { signInFormData } from "@/schema/auth-schema";
 import { apiClient } from "@/core/client";
-import { gsConfig } from '@/modules/gs-registration/gs.config';
 
 export function useAuth() {
     const router = useRouter();
@@ -89,8 +88,12 @@ export function useAuth() {
                 toast.success(`Welcome back, ${session.user.first_name}!`);
                 setparentOTP(false);
 
-                // Students start at GS registration; the GS flow sends them on to enrollment once payment is verified.
-                if (session.user?.role === "STUDENT") router.push(gsConfig.routes.base)
+                // Students: /enrollment if GS enrollment is complete (GET /check-enrollment), else /gs-registration.
+                // Loaded lazily: the GS module's API client imports AuthProvider, which imports this hook.
+                if (session.user?.role === "STUDENT") {
+                    const { resolveStudentHome } = await import('@/modules/gs-registration/hooks/use-gs-enrollment');
+                    router.push(await resolveStudentHome());
+                }
 
                 // redirect to lms  
                 // else router.push(`${lmsLoginUrl}/ssotester/index.php?sso_loggers=1&u=${session.user.reg_number}&password=1`)

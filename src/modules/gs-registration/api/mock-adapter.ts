@@ -131,6 +131,11 @@ export const gsMock = {
         });
     },
 
+    async checkEnrollment() {
+        await sleep(250);
+        return { status: 'success', has_enrolled: Boolean(read().submitted) };
+    },
+
     async submit(body: { course_ids: (string | number)[] }) {
         await sleep(800);
         const s = read();
