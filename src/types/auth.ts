@@ -97,6 +97,10 @@ export interface ApiError {
     message: string;
     errors?: Record<string, string[]>;
     statusCode: number;
+    /** The error envelope's `data` (e.g. `{ active_run }` on 409, `{ errors, not_found }` on 422). */
+    data?: unknown;
+    /** Seconds to wait before retrying (429 `retry_after` body field or `Retry-After` header). */
+    retryAfter?: number;
 }
 
 export interface PaginationParams {

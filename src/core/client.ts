@@ -15,6 +15,8 @@ interface ApiErrorResponse {
     errors?: Record<string, string[]>;
     success?: boolean;
     error?: string;
+    data?: unknown;
+    retry_after?: number | string;
 }
 
 // Queue item interface for failed requests
@@ -148,12 +150,15 @@ class ApiClient {
             // Server responded with error status
             if (axiosError.response) {
                 const responseData = axiosError.response.data;
+                const retryAfter = Number(responseData?.retry_after ?? axiosError.response.headers?.['retry-after']);
                 return {
-                    message: responseData?.message || 
-                             responseData?.error || 
+                    message: responseData?.message ||
+                             responseData?.error ||
                              `HTTP ${axiosError.response.status}: ${axiosError.response.statusText}`,
                     errors: responseData?.errors,
                     statusCode: axiosError.response.status,
+                    data: responseData?.data,
+                    retryAfter: Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter : undefined,
                 };
             }
 

@@ -204,7 +204,22 @@ export const AdminNavMain: SidebarNavConfig = {
             ],
             display: true,
         },
-
+        {
+            title: "ACADEMICS",
+            url: "#",
+            icon: CalendarCheck,
+            items: [
+                {
+                    title: "Sessions & Semesters",
+                    url: "/admin/academic-sessions",
+                },
+                {
+                    title: "GS Migration",
+                    url: "/admin/gs-migration",
+                },
+            ],
+            display: true,
+        },
         {
             title: "MESSAGES",
             url: "#",
