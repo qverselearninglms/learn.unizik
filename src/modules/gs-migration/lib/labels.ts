@@ -66,6 +66,7 @@ export const STEP_HELP: Record<StepKey, string> = {
     pilot: 'Moves only the reg numbers you enter. Check each one afterwards with Look up a student.',
     batch: 'Moves a limited number of students (default 200) so you can confirm it works at scale.',
     everyone: 'Moves all remaining students. Already-moved students are not touched; failed ones are retried.',
+    verify: 'Read-only. Re-checks every moved student in Moodle and the portal, and explains who was skipped or failed and why. Run it any time.',
 };
 
 /** Where a plan sends the student, e.g. "200L" or "Graduates". */

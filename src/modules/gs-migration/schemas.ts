@@ -27,7 +27,7 @@ const countMap = z
 
 /* ───────────────────────────── enums ───────────────────────────── */
 
-export const STEP_KEYS = ['audit', 'cohorts', 'dry_run', 'pilot', 'batch', 'everyone'] as const;
+export const STEP_KEYS = ['audit', 'cohorts', 'dry_run', 'pilot', 'batch', 'everyone', 'verify'] as const;
 export type StepKey = (typeof STEP_KEYS)[number];
 
 export const RUN_STATUSES = ['queued', 'running', 'succeeded', 'failed', 'cancelled'] as const;
@@ -89,6 +89,28 @@ const summaryCohort = z.preprocess(withCohortKind, z.object({ level: str, name: 
 const summaryCohortSync = z.object({ changed: list(z.unknown()), dryRun: bool });
 const summaryExecute = z.object({ students: num, done: num, failed: num, dryRun: bool });
 
+/** "Check results" (step 7, read-only): every moved student re-checked in Moodle and the portal. */
+const summaryVerify = z.object({
+    ok: bool,
+    counts: z.object({ total: num, done: num, skipped: num, failed: num, waiting: num }).catch({ total: 0, done: 0, skipped: 0, failed: 0, waiting: 0 }),
+    checks: list(
+        z.object({
+            key: str,
+            label: str,
+            checked: num,
+            passed: num,
+            problems: num,
+            sample: list(z.object({ regNumber: optStr, detail: optStr })),
+        }),
+    ),
+    problems: num,
+    doneWithoutPortalAccount: num,
+    skipped: list(z.object({ reason: str, students: num, explanation: optStr, sample: list(optStr) })),
+    failed: list(z.object({ error: str, students: num, sample: list(optStr) })),
+    archiveMode: optStr,
+});
+export type VerifySummary = z.output<typeof summaryVerify>;
+
 const section = <T extends z.ZodTypeAny>(s: T) => s.optional().catch(undefined);
 
 export const runSummarySchema = z
@@ -103,6 +125,7 @@ export const runSummarySchema = z
         levelMapDifferences: section(z.array(z.unknown())),
         syncGaps: section(z.array(z.unknown())),
         execute: section(summaryExecute),
+        verify: section(summaryVerify),
     })
     .nullish()
     .catch({})
