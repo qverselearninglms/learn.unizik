@@ -5,12 +5,12 @@ import { AlertTriangle, CheckCircle2, XCircle } from 'lucide-react';
 import { gsMigrationConfig } from '../gs-migration.config';
 import { decisionLabel, paidViaLabel, targetLabel } from '../lib/labels';
 import { formatNumber } from '../lib/format';
-import type { RunSummary } from '../schemas';
+import type { RunSummary, VerifySummary } from '../schemas';
 import { CountTable, PlanStatusBadge, ProgressBar, Section, StatCard } from './ui';
 
 /** Renders whichever `summary` keys are present (they fill in while the run goes). */
 export function RunSummaryView({ summary, active, sourceSession }: { summary: RunSummary; active: boolean; sourceSession?: string }) {
-    const { progress, execute, preflight, audit, plans, cohorts, cohortSync, levelMapDifferences, syncGaps } = summary;
+    const { progress, execute, preflight, audit, plans, cohorts, cohortSync, levelMapDifferences, syncGaps, verify } = summary;
 
     return (
         <div className="space-y-4">
@@ -143,6 +143,8 @@ export function RunSummaryView({ summary, active, sourceSession }: { summary: Ru
                 <p className="text-sm">Cohort sync added on {cohortSync.changed.length} courses.</p>
             )}
 
+            {verify && <VerifyResults v={verify} />}
+
             <Warnings title="Level map differences" items={levelMapDifferences} />
             <Warnings title="Cohort sync gaps" items={syncGaps} />
         </div>
@@ -161,6 +163,124 @@ function Warnings({ title, items }: { title: string; items?: unknown[] }) {
                     <li key={i}>{typeof it === 'string' ? it : JSON.stringify(it)}</li>
                 ))}
             </ul>
+        </div>
+    );
+}
+
+/** Step 7 "Check results": counts that must add up, each check, and why students were skipped/failed. */
+function VerifyResults({ v }: { v: VerifySummary }) {
+    const c = v.counts;
+    const studentsLink = (q: string) => `${gsMigrationConfig.routes.students}?${q}`;
+    return (
+        <div className="space-y-4">
+            <div
+                role="status"
+                className={
+                    v.ok
+                        ? 'flex items-center gap-2 rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-4 text-sm font-medium text-emerald-800 dark:text-emerald-300'
+                        : 'flex items-center gap-2 rounded-xl border border-destructive/40 bg-destructive/10 p-4 text-sm font-medium text-destructive'
+                }
+            >
+                {v.ok ? <CheckCircle2 className="size-4 shrink-0" /> : <XCircle className="size-4 shrink-0" />}
+                {v.ok
+                    ? `Every moved student is correct in Moodle and the portal (${formatNumber(c.done)} checked).`
+                    : `${formatNumber(v.problems)} problem(s) found. Examples are listed below; run "Move everyone" again to retry, then check again.`}
+            </div>
+
+            <Section
+                title="Every student is counted once"
+                description={`${formatNumber(c.total)} in the plan = ${formatNumber(c.done)} moved + ${formatNumber(c.skipped)} skipped + ${formatNumber(c.failed)} failed + ${formatNumber(c.waiting)} waiting. "Waiting" goes down as students are moved; the total stays the same.`}
+            >
+                <div className="grid gap-3 sm:grid-cols-4">
+                    <StatCard label="Moved" value={c.done} tone="good" />
+                    <StatCard label="Skipped (nothing to move)" value={c.skipped} tone={c.skipped ? 'warn' : 'default'} />
+                    <StatCard label="Failed" value={c.failed} tone={c.failed ? 'bad' : 'default'} />
+                    <StatCard label="Waiting to be moved" value={c.waiting} />
+                </div>
+            </Section>
+
+            <Section title="Checks on every moved student" description="Read again from Moodle and the portal just now.">
+                <div className="overflow-x-auto">
+                    <table className="w-full min-w-[480px] text-sm">
+                        <thead>
+                            <tr className="border-b text-left text-xs text-muted-foreground">
+                                <th className="py-1.5 font-medium">Check</th>
+                                <th className="py-1.5 text-right font-medium">Checked</th>
+                                <th className="py-1.5 text-right font-medium">OK</th>
+                                <th className="py-1.5 text-right font-medium">Problems</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {v.checks.map((k) => (
+                                <tr key={k.key} className="border-b align-top last:border-0">
+                                    <td className="py-1.5">
+                                        {k.label}
+                                        {k.sample.length > 0 && (
+                                            <ul className="mt-1 list-disc space-y-0.5 pl-5 text-xs text-destructive">
+                                                {k.sample.map((s, i) => (
+                                                    <li key={i}>
+                                                        {s.regNumber ? (
+                                                            <Link className="font-mono underline" href={gsMigrationConfig.routes.lookup(s.regNumber)}>
+                                                                {s.regNumber}
+                                                            </Link>
+                                                        ) : (
+                                                            '?'
+                                                        )}
+                                                        : {s.detail}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        )}
+                                    </td>
+                                    <td className="py-1.5 text-right tabular-nums">{formatNumber(k.checked)}</td>
+                                    <td className="py-1.5 text-right tabular-nums">{formatNumber(k.passed)}</td>
+                                    <td className={`py-1.5 text-right tabular-nums ${k.problems ? 'font-semibold text-destructive' : ''}`}>{formatNumber(k.problems)}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+                {v.doneWithoutPortalAccount > 0 && (
+                    <p className="mt-2 text-xs text-muted-foreground">
+                        {formatNumber(v.doneWithoutPortalAccount)} moved student(s) have no portal account, so only Moodle was checked for them.
+                    </p>
+                )}
+            </Section>
+
+            {v.skipped.length > 0 && (
+                <Section title="Why students were skipped" description="Skipped students had nothing to move. Moodle was not changed for them.">
+                    <ul className="space-y-3 text-sm">
+                        {v.skipped.map((s) => (
+                            <li key={s.reason} className="rounded-lg border p-3">
+                                <p className="flex flex-wrap items-baseline justify-between gap-2">
+                                    <Link className="font-medium underline" href={studentsLink(`status=skipped&skipReason=${encodeURIComponent(s.reason)}`)}>
+                                        {s.reason.replace(/_/g, ' ')}
+                                    </Link>
+                                    <span className="tabular-nums">{formatNumber(s.students)} students</span>
+                                </p>
+                                {s.explanation && <p className="mt-1 text-muted-foreground">{s.explanation}</p>}
+                                {s.sample.length > 0 && <p className="mt-1 font-mono text-xs text-muted-foreground">e.g. {s.sample.filter(Boolean).join(', ')}</p>}
+                            </li>
+                        ))}
+                    </ul>
+                </Section>
+            )}
+
+            {v.failed.length > 0 && (
+                <Section title="Why students failed" description='Failed students are retried by "Move everyone".'>
+                    <ul className="space-y-3 text-sm">
+                        {v.failed.map((f, i) => (
+                            <li key={i} className="rounded-lg border border-destructive/30 p-3">
+                                <p className="flex flex-wrap items-baseline justify-between gap-2">
+                                    <span className="font-medium text-destructive">{f.error}</span>
+                                    <span className="tabular-nums">{formatNumber(f.students)} students</span>
+                                </p>
+                                {f.sample.length > 0 && <p className="mt-1 font-mono text-xs text-muted-foreground">e.g. {f.sample.filter(Boolean).join(', ')}</p>}
+                            </li>
+                        ))}
+                    </ul>
+                </Section>
+            )}
         </div>
     );
 }

@@ -32,6 +32,8 @@ export interface StepGate {
 const ORDER: StepKey[] = ['audit', 'cohorts', 'dry_run', 'pilot', 'batch', 'everyone'];
 const REHEARSAL_PREREQ: Partial<Record<StepKey, StepKey>> = { pilot: 'dry_run', batch: 'pilot', everyone: 'batch' };
 const EXECUTE: StepKey[] = ['dry_run', 'pilot', 'batch', 'everyone'];
+/** Read-only checks: never part of the rehearsal order, runnable whenever plans exist. */
+const CHECKS: StepKey[] = ['verify'];
 
 type Success = { known: boolean; at?: string; source: 'server' | 'recent' | 'state' };
 
@@ -56,7 +58,7 @@ export function computeStepGates(o: Overview): Record<string, StepGate> {
     const succeededAtOrAfter = (k: StepKey) => ORDER.slice(ORDER.indexOf(k)).some((x) => success(x).known);
 
     const gates: Record<string, StepGate> = {};
-    for (const k of ORDER) {
+    for (const k of [...ORDER, ...CHECKS]) {
         const own = success(k);
         let gate: StepGate = { state: 'ready' };
 
@@ -66,6 +68,9 @@ export function computeStepGates(o: Overview): Record<string, StepGate> {
         if (gate.state !== 'done' && own.known) gate = { state: 'done', doneEvidence: own.source === 'server' ? 'Succeeded' : 'Succeeded in recent runs' };
 
         // HARD prerequisites.
+        if (CHECKS.includes(k) && !plansExist) {
+            gate = { state: 'blocked', reason: `Run “${title('audit')}” first.` };
+        }
         if (k === 'cohorts' && !plansExist) {
             gate = { state: 'blocked', reason: `Run “${title('audit')}” first.` };
         }

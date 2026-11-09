@@ -78,6 +78,7 @@ const STEPS = [
     ['pilot', '4. Move 2-3 test students', true, '--phase=execute --user=<id>'],
     ['batch', '5. Move a small batch', true, '--phase=execute --limit=200'],
     ['everyone', '6. Move everyone', true, '--phase=execute'],
+    ['verify', '7. Check results', false, '--phase=verify'],
 ] as const;
 const CMD = 'php artisan gs:migrate-students-to-cohorts';
 
@@ -140,7 +141,7 @@ function buildEvents(r: MRun) {
     const step = String(w.step);
     const out = (...lines: string[]) => r.output.push(...lines);
     const dryRun = step === 'dry_run';
-    summary.run = { audit_run_id: w.audit_run_id, target_session: TARGET, source_session: SOURCE, archive_mode: 'suspend', dry_run: dryRun, phase: step === 'audit' ? 'audit' : step === 'cohorts' ? 'cohorts' : 'execute' };
+    summary.run = { audit_run_id: w.audit_run_id, target_session: TARGET, source_session: SOURCE, archive_mode: 'suspend', dry_run: dryRun, phase: step === 'audit' ? 'audit' : step === 'cohorts' ? 'cohorts' : step === 'verify' ? 'verify' : 'execute' };
     const ev = r.events;
     let t = 600;
     const at = (ms: number, fn: () => void) => ev.push({ at: (t += ms), fn });
@@ -179,6 +180,41 @@ function buildEvents(r: MRun) {
             out('', ...table(['Decision', 'Students'], Object.entries(decisions)), '');
             out(...table(['Counted as paid because', 'Students'], Object.entries(paidVia)), '');
             out('Audit complete. No changes were made to Moodle.');
+            finish(r, 'succeeded');
+        });
+        return;
+    }
+
+    if (step === 'verify') {
+        at(800, () => {
+            const all = [...plans.values()];
+            const n = (st: string) => all.filter((p) => p.status === st).length;
+            const done = n('done');
+            const reasons = new Map<string, Wire[]>();
+            all.filter((p) => p.status === 'skipped').forEach((p) => reasons.set(String(p.skip_reason), [...(reasons.get(String(p.skip_reason)) ?? []), p]));
+            const meaning: Record<string, string> = {
+                no_moodle_account: 'Has a portal account but no Moodle account: there is nothing to move.',
+                unpaid_source_session: 'No successful GS payment for the previous session, so they are not promoted (payment rule).',
+            };
+            const check = (key: string, label: string, checked: number) => ({ key, label, checked, passed: checked, problems: 0, sample: [] });
+            summary.progress = { phase: 'verify', processed: done, total: done };
+            summary.verify = {
+                ok: true,
+                counts: { total: all.length, done, skipped: n('skipped'), failed: n('failed'), waiting: all.length - done - n('skipped') - n('failed') },
+                checks: [
+                    check('in_cohort', 'In the new cohort in Moodle', done),
+                    check('old_closed', 'Old courses suspended (grades kept)', done),
+                    check('carryover_active', 'Carryover courses still active', 0),
+                    check('portal_level', 'Portal shows the new level and session', all.filter((p) => p.status === 'done' && p.target_level).length),
+                    check('graduate_marked', 'Graduates marked "GS completed" in the portal', all.filter((p) => p.status === 'done' && p.decision === 'graduate').length),
+                ],
+                problems: 0,
+                done_without_portal_account: 0,
+                skipped: [...reasons].map(([reason, ps]) => ({ reason, students: ps.length, explanation: meaning[reason] ?? 'Nothing to do for these students.', sample: ps.slice(0, 10).map((p) => p.reg_number) })),
+                failed: [],
+                archive_mode: 'suspend',
+            };
+            out('Checking the results (read-only: nothing is changed)...', `Students in the plan: ${all.length}`, 'ALL CHECKS PASSED for every moved student.');
             finish(r, 'succeeded');
         });
         return;
