@@ -43,7 +43,7 @@ export const gsMigrationConfig = {
         pilotMaxRegNumbers: 20,
         batchMin: 1,
         batchMax: 5000,
-        batchDefault: 200,
+        batchDefault: 1000,
         plansPerPage: 50,
         auditPerPage: 50,
     },

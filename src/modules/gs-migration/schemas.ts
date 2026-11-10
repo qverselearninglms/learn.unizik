@@ -129,6 +129,8 @@ export const runSummarySchema = z
         syncGaps: section(z.array(z.unknown())),
         execute: section(summaryExecute),
         verify: section(summaryVerify),
+        /** "Move everyone" paused because Moodle was slow/down; continues by itself at resumeAt. */
+        autoResume: section(z.object({ attempt: num, max: num, waitingSeconds: num, resumeAt: optStr, reason: optStr })),
     })
     .nullish()
     .catch({})

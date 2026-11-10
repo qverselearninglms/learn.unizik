@@ -64,8 +64,8 @@ export const STEP_HELP: Record<StepKey, string> = {
     cohorts: 'Creates the 100L, 200L and 300L cohorts (synced to their courses) and the 300L Graduates cohort in Moodle. No students are moved.',
     dry_run: 'Shows what would happen to each group. Nothing changes.',
     pilot: 'Moves only the reg numbers you enter. Check each one afterwards with Look up a student.',
-    batch: 'Moves a limited number of students (default 200) so you can confirm it works at scale.',
-    everyone: 'Moves all remaining students. Already-moved students are not touched; failed ones are retried.',
+    batch: 'Moves a limited number of students (default 1000). Run it again for the next 1000.',
+    everyone: 'Moves all remaining students automatically, 250 at a time, until none are left. If Moodle is slow or down it waits and continues by itself. Already-moved students are not touched; failed ones are retried.',
     verify: 'Read-only. Re-checks every moved student in Moodle and the portal, and explains who was skipped or failed and why. Run it any time.',
 };
 
