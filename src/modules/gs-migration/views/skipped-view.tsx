@@ -13,6 +13,7 @@ const REASON: Record<string, string> = {
     no_moodle_account: 'No Moodle account',
     no_active_gs_enrolment: 'No active GS course in Moodle',
     unpaid_source_session: 'No GS payment found',
+    payment_unknown_campusedge_unreachable: 'Old CampusEdge check got no answer',
     target_session_without_valid_level: 'Portal level not 100/200/300',
 };
 const ACCOUNT: Record<string, string> = {
