@@ -8,6 +8,7 @@ export { RunView } from './views/run-view';
 export { RunsView } from './views/runs-view';
 export { StudentsView } from './views/students-view';
 export { LookupView } from './views/lookup-view';
+export { SkippedView } from './views/skipped-view';
 export { HistoryView } from './views/history-view';
 export { TableSkeleton as GsMigrationTableSkeleton } from './components/ui';
 export { gsMigrationConfig } from './gs-migration.config';

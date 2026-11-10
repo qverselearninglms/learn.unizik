@@ -7,6 +7,7 @@ export const gsmKeys = {
     runList: (page: number) => ['gs-migration', 'runs', 'list', page] as const,
     run: (id: string) => ['gs-migration', 'runs', 'detail', id] as const,
     planLists: ['gs-migration', 'plans'] as const,
+    skipped: ['gs-migration', 'skipped'] as const,
     plans: (f: PlanFilters) => ['gs-migration', 'plans', f] as const,
     students: ['gs-migration', 'student'] as const,
     student: (reg: string) => ['gs-migration', 'student', reg] as const,

@@ -37,6 +37,15 @@ export function usePlans(filters: PlanFilters) {
     });
 }
 
+export function useSkipped() {
+    return useQuery({
+        queryKey: gsmKeys.skipped,
+        queryFn: gsMigrationApi.getSkipped,
+        staleTime: gsMigrationConfig.listStaleMs,
+        ...gsmRetry,
+    });
+}
+
 export function useStudentLookup(reg: string) {
     return useQuery({
         queryKey: gsmKeys.student(reg),

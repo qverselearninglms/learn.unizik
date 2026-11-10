@@ -11,6 +11,7 @@ export const gsMigrationConfig = {
         run: (id: string) => `${BASE}/runs/${encodeURIComponent(id)}`,
         students: `${BASE}/students`,
         lookup: (reg?: string) => (reg ? `${BASE}/lookup?reg=${encodeURIComponent(reg)}` : `${BASE}/lookup`),
+        skipped: `${BASE}/skipped`,
         history: `${BASE}/history`,
     },
 
@@ -20,6 +21,7 @@ export const gsMigrationConfig = {
         run: (id: string) => `${API_PREFIX}/runs/${encodeURIComponent(id)}`,
         cancel: (id: string) => `${API_PREFIX}/runs/${encodeURIComponent(id)}/cancel`,
         plans: `${API_PREFIX}/plans`,
+        skipped: `${API_PREFIX}/skipped`,
         /** Reg numbers contain "/" → must be URL-encoded (2025/A → 2025%2FA). */
         student: (reg: string) => `${API_PREFIX}/students/${encodeURIComponent(reg)}`,
         auditLogs: `${API_PREFIX}/audit-logs`,

@@ -356,6 +356,46 @@ export const studentLookupSchema = z.object({
 });
 export type StudentLookup = z.output<typeof studentLookupSchema>;
 
+/* ───────────────────────────── skipped students ───────────────────────────── */
+
+export const skippedReportSchema = z.object({
+    sourceSession: optStr,
+    paymentRule: bool,
+    total: num,
+    needsDecision: num,
+    groups: list(
+        z.object({
+            reason: str,
+            level: optStr,
+            portalAccount: str, // linked | found | none
+            students: num,
+            startedPaymentNotSuccess: num,
+            successPaymentFound: num,
+            meaning: optStr,
+            action: optStr,
+            needsDecision: bool,
+            sample: list(optStr),
+        }),
+    ),
+    students: list(
+        z.object({
+            planId: optStr,
+            regNumber: optStr,
+            name: optStr,
+            email: optStr,
+            reason: optStr,
+            level: optStr,
+            portalAccount: optStr,
+            portalLevel: optStr,
+            portalSession: optStr,
+            moodleUserId: optStr,
+            activeCourses: optStr,
+            payments: optStr,
+        }),
+    ),
+});
+export type SkippedReport = z.output<typeof skippedReportSchema>;
+
 /* ───────────────────────────── requests ───────────────────────────── */
 
 export interface StartRunInput {
