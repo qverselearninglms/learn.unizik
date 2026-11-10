@@ -10,10 +10,23 @@ import { CountTable, PlanStatusBadge, ProgressBar, Section, StatCard } from './u
 
 /** Renders whichever `summary` keys are present (they fill in while the run goes). */
 export function RunSummaryView({ summary, active, sourceSession }: { summary: RunSummary; active: boolean; sourceSession?: string }) {
-    const { progress, execute, preflight, audit, plans, cohorts, cohortSync, levelMapDifferences, syncGaps, verify } = summary;
+    const { progress, execute, preflight, audit, plans, cohorts, cohortSync, levelMapDifferences, syncGaps, verify, autoResume } = summary;
 
     return (
         <div className="space-y-4">
+            {autoResume && active && (
+                <div role="status" className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm text-amber-900 dark:text-amber-200">
+                    <p className="flex items-center gap-2 font-semibold">
+                        <AlertTriangle className="size-4 shrink-0" />
+                        {autoResume.resumeAt
+                            ? `Moodle was slow or not answering. Paused; continuing automatically at ${new Date(autoResume.resumeAt).toLocaleTimeString()} (retry ${autoResume.attempt} of ${autoResume.max}).`
+                            : `Continuing automatically after a Moodle problem (retry ${autoResume.attempt} of ${autoResume.max}).`}
+                    </p>
+                    <p className="mt-1">Nothing to do: leave it running. Students already moved are kept.</p>
+                    {autoResume.reason && <p className="mt-1 text-xs opacity-80">{autoResume.reason}</p>}
+                </div>
+            )}
+
             {progress && progress.total > 0 && (
                 <Section
                     title={progress.phase === 'verify' ? 'Moved students re-checked' : 'Progress'}
@@ -29,6 +42,26 @@ export function RunSummaryView({ summary, active, sourceSession }: { summary: Ru
                     }
                 >
                     <ProgressBar processed={progress.processed} total={progress.total} active={active} />
+                    {progress.phase === 'execute' && (progress.done !== undefined || progress.failed !== undefined) && (
+                        <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm">
+                            <span className="text-emerald-700 dark:text-emerald-400">
+                                <CheckCircle2 className="mr-1 inline size-4" />
+                                Moved: <strong className="tabular-nums">{formatNumber(progress.done ?? 0)}</strong>
+                            </span>
+                            <span className={progress.failed ? 'text-destructive' : 'text-muted-foreground'}>
+                                <XCircle className="mr-1 inline size-4" />
+                                Failed: <strong className="tabular-nums">{formatNumber(progress.failed ?? 0)}</strong>
+                                {progress.failed ? (
+                                    <Link href={`${gsMigrationConfig.routes.students}?status=failed`} className="ml-2 underline">
+                                        see why
+                                    </Link>
+                                ) : null}
+                            </span>
+                            <span className="text-muted-foreground">
+                                Still to do in this run: <strong className="tabular-nums">{formatNumber(Math.max(0, progress.total - progress.processed))}</strong>
+                            </span>
+                        </div>
+                    )}
                 </Section>
             )}
 

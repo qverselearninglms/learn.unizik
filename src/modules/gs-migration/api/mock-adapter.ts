@@ -76,7 +76,7 @@ const STEPS = [
     ['cohorts', '2. Create the cohorts', true, '--phase=cohorts'],
     ['dry_run', '3. Practice run', false, '--phase=execute --dry-run'],
     ['pilot', '4. Move 2-3 test students', true, '--phase=execute --user=<id>'],
-    ['batch', '5. Move a small batch', true, '--phase=execute --limit=200'],
+    ['batch', '5. Move a batch', true, '--phase=execute --limit=1000'],
     ['everyone', '6. Move everyone', true, '--phase=execute'],
     ['verify', '7. Check results', false, '--phase=verify'],
 ] as const;
@@ -259,7 +259,7 @@ function buildEvents(r: MRun) {
         const opts = w.options as Wire;
         targets = [...plans.values()].filter((p) => p.status === 'planned' || p.status === 'failed');
         if (step === 'pilot') targets = [...plans.values()].filter((p) => (opts.reg_numbers as string[]).includes(String(p.reg_number)) && (p.decision === 'promote' || p.decision === 'graduate') && p.status !== 'done');
-        if (step === 'batch') targets = targets.slice(0, Number(opts.limit ?? 200));
+        if (step === 'batch') targets = targets.slice(0, Number(opts.limit ?? 1000));
         summary.progress = { phase: 'execute', processed: 0, total: targets.length, done: 0, failed: 0 };
         summary.execute = { students: targets.length, done: 0, failed: 0, dry_run: dryRun };
         out(`Phase 3: ${dryRun ? 'simulating' : 'executing'} ${targets.length} students in chunks...`);
@@ -498,7 +498,7 @@ export const gsMigrationMock: GsMigrationTransport = {
                 if (notFound.length) return fail(422, 'Some reg numbers were not found.', { not_found: notFound });
                 args[0] = `--phase=execute ${regs.map((reg) => `--user=${students.find((s) => s.reg.toLowerCase() === reg.toLowerCase())!.id}`).join(' ')}`;
             }
-            if (b.step === 'batch') args[0] = `--phase=execute --limit=${Number(b.limit ?? 200)}`;
+            if (b.step === 'batch') args[0] = `--phase=execute --limit=${Number(b.limit ?? 1000)}`;
             if (b.step === 'audit' && b.replan) args.push('--replan');
 
             const r: MRun = {
