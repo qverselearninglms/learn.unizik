@@ -105,7 +105,7 @@ export function StudentsView() {
                             { value: '', label: 'Any reason' },
                             { value: 'no_moodle_account', label: 'No Moodle account' },
                             { value: 'unpaid_source_session', label: `Not paid ${source ?? ''}`.trim() },
-                            { value: 'payment_unknown_campusedge_unreachable', label: 'CampusEdge did not answer' },
+                            { value: 'no_active_gs_enrolment', label: 'No active GS course in Moodle' },
                         ]}
                     />
                     <NativeSelect

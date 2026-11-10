@@ -17,8 +17,10 @@ const skipReason = (reason: string, sourceSession: string) => {
             return 'no Moodle account';
         case 'unpaid_source_session':
             return `not paid ${sourceSession}`;
+        case 'no_active_gs_enrolment':
+            return 'no active GS course in Moodle';
         case 'payment_unknown_campusedge_unreachable':
-            return 'CampusEdge did not answer (re-run step 1 with "replan")';
+            return 'old CampusEdge check got no answer (run step 1 again)';
         default:
             return reason.replace(/_/g, ' ');
     }
