@@ -436,6 +436,26 @@ export const gsMigrationMock: GsMigrationTransport = {
             return r ? ok(detail(r, Number(p.after_line ?? 0))) : fail(404, 'Run not found');
         }
 
+        if (path === '/skipped') {
+            const skipped = [...plans.values()].filter((p) => p.status === 'skipped');
+            const meaning: Record<string, [string, string, boolean]> = {
+                no_moodle_account: ['They have a portal account but NO Moodle account: nothing to move.', 'Nothing to do.', false],
+                unpaid_source_session: [`Active in GS courses but no SUCCESS GS payment for ${SOURCE}.`, 'DECIDE: confirm with the bursary.', true],
+            };
+            const groups = new Map<string, Wire[]>();
+            skipped.forEach((p) => groups.set(`${p.skip_reason}|${p.source_level ?? ''}`, [...(groups.get(`${p.skip_reason}|${p.source_level ?? ''}`) ?? []), p]));
+            const g = [...groups].map(([k, ps]) => {
+                const [reason, level] = k.split('|');
+                const [m, a, d] = meaning[reason] ?? ['Nothing to do for these students.', 'Nothing to do.', false];
+                return { reason, level: level || null, portal_account: 'linked', students: ps.length, started_payment_not_success: 0, success_payment_found: 0, meaning: m, action: a, needs_decision: d, sample: ps.slice(0, 5).map((p) => p.reg_number) };
+            });
+            return ok({
+                source_session: SOURCE, payment_rule: true, total: skipped.length,
+                needs_decision: g.filter((x) => x.needs_decision).reduce((n, x) => n + x.students, 0),
+                groups: g,
+                students: skipped.map((p) => ({ reg_number: p.reg_number, reason: p.skip_reason, level: p.source_level, portal_account: 'linked' })),
+            });
+        }
         if (path === '/plans') {
             const q = String(p.search ?? '').toLowerCase();
             const rows = [...plans.values()].filter(

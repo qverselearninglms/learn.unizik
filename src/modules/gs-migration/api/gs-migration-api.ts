@@ -7,6 +7,7 @@ import {
     planPageSchema,
     runDetailSchema,
     runPageSchema,
+    skippedReportSchema,
     studentLookupSchema,
     type AuditFilters,
     type PlanFilters,
@@ -93,6 +94,10 @@ export const gsMigrationApi = {
             per_page: limits.plansPerPage,
         });
         return run((t) => t.get(endpoints.plans, { params }), planPageSchema, 'student list');
+    },
+
+    getSkipped() {
+        return run((t) => t.get(endpoints.skipped), skippedReportSchema, 'skipped students');
     },
 
     getStudent(reg: string) {

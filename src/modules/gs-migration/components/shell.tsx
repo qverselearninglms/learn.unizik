@@ -16,6 +16,7 @@ const TABS = [
     { href: routes.overview, label: 'Overview', exact: true },
     { href: routes.runs, label: 'Runs' },
     { href: routes.students, label: 'Students' },
+    { href: routes.skipped, label: 'Skipped' },
     { href: routes.lookup(), label: 'Look up a student' },
     { href: routes.history, label: 'History' },
 ];
