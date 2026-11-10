@@ -15,7 +15,19 @@ export function RunSummaryView({ summary, active, sourceSession }: { summary: Ru
     return (
         <div className="space-y-4">
             {progress && progress.total > 0 && (
-                <Section title="Progress" description={progress.phase ? `Phase: ${progress.phase}` : undefined}>
+                <Section
+                    title={progress.phase === 'verify' ? 'Moved students re-checked' : 'Progress'}
+                    description={
+                        progress.phase === 'verify'
+                            ? 'Only students already moved can be checked. The whole migration is summarised below.'
+                            : [
+                                  progress.phase ? `Phase: ${progress.phase}` : '',
+                                  progress.timeoutSplits ? `Moodle was slow, so calls now send ${progress.batchSize ?? '?'} at a time (slower, but safe).` : '',
+                              ]
+                                  .filter(Boolean)
+                                  .join(' · ') || undefined
+                    }
+                >
                     <ProgressBar processed={progress.processed} total={progress.total} active={active} />
                 </Section>
             )}
@@ -173,19 +185,42 @@ function VerifyResults({ v }: { v: VerifySummary }) {
     const studentsLink = (q: string) => `${gsMigrationConfig.routes.students}?${q}`;
     return (
         <div className="space-y-4">
-            <div
-                role="status"
-                className={
-                    v.ok
-                        ? 'flex items-center gap-2 rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-4 text-sm font-medium text-emerald-800 dark:text-emerald-300'
-                        : 'flex items-center gap-2 rounded-xl border border-destructive/40 bg-destructive/10 p-4 text-sm font-medium text-destructive'
-                }
-            >
-                {v.ok ? <CheckCircle2 className="size-4 shrink-0" /> : <XCircle className="size-4 shrink-0" />}
-                {v.ok
-                    ? `Every moved student is correct in Moodle and the portal (${formatNumber(c.done)} checked).`
-                    : `${formatNumber(v.problems)} problem(s) found. Examples are listed below; run "Move everyone" again to retry, then check again.`}
-            </div>
+            {(() => {
+                const complete = c.waiting === 0 && c.failed === 0;
+                const good = complete && v.ok;
+                return (
+                    <div
+                        role="status"
+                        className={
+                            good
+                                ? 'rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-4 text-sm text-emerald-800 dark:text-emerald-300'
+                                : !v.ok
+                                  ? 'rounded-xl border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive'
+                                  : 'rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm text-amber-900 dark:text-amber-200'
+                        }
+                    >
+                        <p className="flex items-center gap-2 text-base font-semibold">
+                            {good ? <CheckCircle2 className="size-5 shrink-0" /> : !v.ok ? <XCircle className="size-5 shrink-0" /> : <AlertTriangle className="size-5 shrink-0" />}
+                            {complete
+                                ? `Migration complete: ${formatNumber(c.done)} of ${formatNumber(c.total)} students moved, ${formatNumber(c.skipped)} skipped (nothing to move).`
+                                : `Migration NOT finished: ${formatNumber(c.done)} of ${formatNumber(c.total)} students moved (${c.total ? ((c.done / c.total) * 100).toFixed(1) : '0'}%).`}
+                        </p>
+                        {!complete && (
+                            <p className="mt-1">
+                                {formatNumber(c.waiting)} still waiting
+                                {c.failed > 0 && <>, {formatNumber(c.failed)} failed</>}, {formatNumber(c.skipped)} skipped. Press “Move everyone” to continue; it picks up where it stopped.
+                            </p>
+                        )}
+                        <p className="mt-1">
+                            {v.ok
+                                ? c.done > 0
+                                    ? `All ${formatNumber(c.done)} moved students are correct in Moodle and the portal.`
+                                    : 'No student has been moved yet.'
+                                : `${formatNumber(v.problems)} problem(s) among the moved students. Examples are listed below.`}
+                        </p>
+                    </div>
+                );
+            })()}
 
             <Section
                 title="Every student is counted once"

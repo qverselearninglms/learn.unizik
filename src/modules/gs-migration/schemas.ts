@@ -75,6 +75,9 @@ const summaryProgress = z.object({
     total: num,
     done: optNum,
     failed: optNum,
+    /** Items per Moodle call right now (halved each time Moodle times out). */
+    batchSize: optNum,
+    timeoutSplits: optNum,
 });
 const summaryAudit = z.object({ students: num, decisions: countMap, paidVia: countMap });
 const summaryPlanRow = z.object({
